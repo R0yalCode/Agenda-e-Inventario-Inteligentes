@@ -30,35 +30,35 @@ miniproyecto/
 │ ├── MenuPrincipal.java 
 │ ├── AppContext.java 
 │ └── HistoryManager.java 
-├── data
+├── data/
 │ └── DatasetManager.java  
-├── io
+├── io/
 │ ├── CsvLoader.java 
 │ ├── CsvValidator.java  
 │ ├── CsvWriter.java  
 │ └── FileUtils.java  
-├── model
+├── model/
 │ ├── Cita.java  
 │ ├── Paciente.java  
 │ ├── InventarioItem.java  
 │ └── ResultadoBusqueda.java  
-├── sll
+├── sll/
 │ ├── Node.java 
 │ └── SinglyLinkedList.java  
-├── search
+├── search/
 │ ├── SequentialSearch.java  
 │ ├── LinearSearch.java  
 │ ├── LinearSearchSentinel.java  
 │ ├── SLLSearch.java  
 │ ├── BinarySearch.java  
 │ └── SearchStatistics.java  
-├── sorting
+├── sorting/
 │ ├── Sorter.java  
 │ ├── BubbleSorter.java  
 │ ├── InsertionSorter.java 
 │ ├── SelectionSorter.java 
 │ └── SortStatistics.java 
-└── util
+└── util/
 ├── ANSI.java  
 ├── ConsoleUtils.java 
 ├── ProgressBar.java  
