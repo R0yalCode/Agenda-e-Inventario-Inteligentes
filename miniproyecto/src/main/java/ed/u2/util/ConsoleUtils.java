@@ -25,7 +25,7 @@ public class ConsoleUtils {
                 System.out.print(ANSI.CYAN + mensaje + ANSI.RESET + " ");
                 return Integer.parseInt(sc.nextLine().trim());
             } catch (Exception e) {
-                System.out.println(ANSI.RED + "✘ Error: Ingrese un número entero válido." + ANSI.RESET);
+                System.out.println(ANSI.RED + "Error: Ingrese un número entero válido." + ANSI.RESET);
             }
         }
     }
@@ -36,7 +36,7 @@ public class ConsoleUtils {
                 System.out.print(ANSI.CYAN + mensaje + ANSI.RESET + " ");
                 return Double.parseDouble(sc.nextLine().trim());
             } catch (Exception e) {
-                System.out.println(ANSI.RED + "✘ Error: Ingrese un número decimal válido." + ANSI.RESET);
+                System.out.println(ANSI.RED + "Error: Ingrese un número decimal válido." + ANSI.RESET);
             }
         }
     }

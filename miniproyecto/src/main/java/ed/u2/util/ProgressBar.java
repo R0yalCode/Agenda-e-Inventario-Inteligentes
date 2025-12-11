@@ -1,38 +1,20 @@
 package ed.u2.util;
 
 /**
- * Autor: R 
- * Fecha: 2025
- *
- * Clase reutilizable para mostrar barras de progreso en terminal
- * estilo Linux.
- * Entrada: índice actual y total
- * Salida: progreso visual animado
+ * Barra de progreso tipo Linux terminal.
  */
 public class ProgressBar {
 
-    private static final int WIDTH = 40;
+    public static void mostrar(double progreso) {
+        int total = 30;
+        int completos = (int) (progreso * total);
 
-    /**
-     * Dibuja una barra de progreso visual.
-     *
-     * @param actual índice actual
-     * @param total  total de elementos
-     */
-    public static void render(int actual, int total) {
+        StringBuilder sb = new StringBuilder("\r[");
+        for (int i = 0; i < completos; i++) sb.append("=");
+        for (int i = completos; i < total; i++) sb.append(" ");
+        sb.append("] ").append(String.format("%.1f%%", progreso * 100));
 
-        if (total <= 0) total = 1;
-
-        int progreso = (actual * 100) / total;
-        int llenos = (progreso * WIDTH) / 100;
-
-        StringBuilder b = new StringBuilder("\r[");
-        for (int i = 0; i < WIDTH; i++) {
-            b.append(i < llenos ? "=" : " ");
-        }
-        b.append("] ").append(progreso).append("%");
-
-        System.out.print(ANSI.GREEN + b + ANSI.RESET);
+        System.out.print(sb);
+        if (progreso >= 1) System.out.println();
     }
-
 }

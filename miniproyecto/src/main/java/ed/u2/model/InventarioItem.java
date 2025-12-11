@@ -1,72 +1,66 @@
 package ed.u2.model;
 
 /**
- * Autor: R + ChatGPT
+ * Autor: R  
  * Fecha: 2025
  *
- * Modelo para ítems del stock/inventario.
- *
- * Comparable: se ordena por cantidad (stock). En empate, por nombre.
+ * Representa un ítem del inventario:
+ *  - id (ITEM-0001)
+ *  - insumo (Gasas 5x5)
+ *  - stock (cantidad disponible)
  */
 public class InventarioItem implements Comparable<InventarioItem> {
 
-    private int idItem;
-    private String nombre;
+    private String id;
+    private String insumo;
     private int stock;
 
-    public InventarioItem(int idItem, String nombre, int stock) {
-        this.idItem = idItem;
-        this.nombre = nombre;
+    // ============================================================
+    // CONSTRUCTOR COMPATIBLE CON CsvLoader
+    // ============================================================
+
+    public InventarioItem(String id, String insumo, int stock) {
+        this.id = id;
+        this.insumo = insumo;
         this.stock = stock;
     }
 
-    // -------------------------------
-    // GETTERS Y SETTERS
-    // -------------------------------
-    public int getIdItem() {
-        return idItem;
+    // ============================================================
+    // GETTERS
+    // ============================================================
+
+    public String getId() {
+        return id;
     }
 
-    public void setIdItem(int idItem) {
-        this.idItem = idItem;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public String getInsumo() {
+        return insumo;
     }
 
     public int getStock() {
         return stock;
     }
 
-    public void setStock(int stock) {
-        this.stock = stock;
-    }
+    // ============================================================
+    // compareTo
+    // ============================================================
 
-    // -------------------------------
-    // COMPARABLE
-    // -------------------------------
     @Override
     public int compareTo(InventarioItem o) {
+        // Ordenar por stock ascendente
         int cmp = Integer.compare(this.stock, o.stock);
         if (cmp != 0) return cmp;
 
-        return this.nombre.compareToIgnoreCase(o.nombre);
+        // Si stock igual → por nombre
+        return this.insumo.compareTo(o.insumo);
     }
 
-    // -------------------------------
-    // TO STRING
-    // -------------------------------
+    // ============================================================
+    // toString
+    // ============================================================
+
     @Override
     public String toString() {
-        return "InventarioItem{" +
-                "idItem=" + idItem +
-                ", nombre='" + nombre + '\'' +
-                ", stock=" + stock +
-                '}';
+        return id + " | " + insumo + " | stock=" + stock;
     }
 }

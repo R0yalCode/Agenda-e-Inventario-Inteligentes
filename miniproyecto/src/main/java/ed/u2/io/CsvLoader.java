@@ -1,117 +1,164 @@
 package ed.u2.io;
 
-import ed.u2.data.DatasetManager;
-import ed.u2.data.DatasetType;
+import ed.u2.model.*;
 import ed.u2.util.ANSI;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 
 /**
- * Autor: R + ChatGPT
+ * Autor: R 
  * Fecha: 2025
  *
- * Carga y valida archivos CSV según el tipo de dataset.
- * Integra directamente con DatasetManager.
+ * Carga y detecta datasets CSV (citas, pacientes, inventario)
+ * desde archivos con formato:
  *
- * Entrada: ruta de archivo CSV
- * Salida: arreglo + SLL cargados en DatasetManager
+ * • Separador: ;
+ * • Primera línea: encabezados
  */
 public class CsvLoader {
 
-    // ======== CABECERAS OFICIALES ========
-    private static final String[] HEADER_CITAS = {"id", "apellido", "fechaHora"};
-    private static final String[] HEADER_INVENTARIO = {"id", "insumo", "stock"};
-    private static final String[] HEADER_PACIENTES = {"id", "apellido", "prioridad"};
+    // ============================================================
+    // HEADERS OFICIALES
+    // ============================================================
 
-    // =====================================
-    //   VALIDAR EL CSV Y DETECTAR SU TIPO
-    // =====================================
+    private static final List<String> H_CITAS =
+            Arrays.asList("id", "apellido", "fechaHora");
 
-    /**
-     * Valida las cabeceras del CSV para determinar a qué dataset pertenece.
-     *
-     * @param ruta ruta del archivo
-     * @return DatasetType detectado o DESCONOCIDO
-     */
-    public static DatasetType validarCSV(String ruta) {
+    private static final List<String> H_PACIENTES =
+            Arrays.asList("id", "apellido", "prioridad");
 
-        try {
+    private static final List<String> H_INVENTARIO =
+            Arrays.asList("id", "insumo", "stock");
 
-            List<String> lineas = Files.readAllLines(Paths.get(ruta));
 
-            if (lineas.isEmpty()) return DatasetType.DESCONOCIDO;
-
-            String header = lineas.get(0).trim();
-            String[] cols = header.split(";");
-
-            if (matchHeader(cols, HEADER_CITAS)) return DatasetType.CITAS_100;
-            if (matchHeader(cols, HEADER_INVENTARIO)) return DatasetType.INVENTARIO_500_INVERSO;
-            if (matchHeader(cols, HEADER_PACIENTES)) return DatasetType.PACIENTES_500;
-
-        } catch (Exception e) {
-            System.out.println(ANSI.RED + "✘ No se pudo leer el archivo CSV." + ANSI.RESET);
-        }
-
-        return DatasetType.DESCONOCIDO;
-    }
+    // ============================================================
+    // MÉTODO PRINCIPAL
+    // ============================================================
 
     /**
-     * Compara header detectado con esperado.
-     */
-    private static boolean matchHeader(String[] a, String[] b) {
-        if (a.length != b.length) return false;
-
-        for (int i = 0; i < a.length; i++) {
-            if (!a[i].trim().equalsIgnoreCase(b[i].trim()))
-                return false;
-        }
-        return true;
-    }
-
-    // =====================================
-    //          CARGAR EL CSV
-    // =====================================
-
-    /**
-     * Carga el CSV según el tipo detectado.
+     * Carga un CSV manual o oficial.
      *
      * @param ruta ruta del archivo CSV
-     * @param tipo tipo del dataset
-     * @return true si se cargó correctamente
+     * @return Map con la clave ("citas","pacientes","inventario")
+     *         y una lista de objetos correspondientes
      */
-    public static boolean cargarCSV(String ruta, DatasetType tipo) {
+    public static Map<String, Object> cargarCsv(String ruta) {
 
+        Map<String, Object> respuesta = new HashMap<>();
+
+        List<String> lineas;
         try {
-            List<String> lineas = Files.readAllLines(Paths.get(ruta));
-
-            if (lineas.size() <= 1) {
-                System.out.println(ANSI.RED + "✘ El CSV no contiene datos." + ANSI.RESET);
-                return false;
-            }
-
-            List<String> datos = new ArrayList<>();
-
-            for (int i = 1; i < lineas.size(); i++) {
-                String linea = lineas.get(i).trim();
-
-                if (!linea.isEmpty())
-                    datos.add(linea);   // Cada registro es un string completo
-            }
-
-            // Convertir a arreglo
-            Object[] arr = datos.toArray(new Object[0]);
-
-            // Cargar en DatasetManager
-            DatasetManager.cargarDesdeCSV(arr, tipo);
-
-            return true;
-
+            lineas = Files.readAllLines(Paths.get(ruta));
         } catch (Exception e) {
-            System.out.println(ANSI.RED + "✘ Error al cargar CSV: " + e.getMessage() + ANSI.RESET);
-            return false;
+            System.out.println(ANSI.RED + "Error leyendo archivo: " + e.getMessage() + ANSI.RESET);
+            return respuesta;
         }
+
+        if (lineas.isEmpty()) {
+            System.out.println(ANSI.RED + "El CSV está vacío." + ANSI.RESET);
+            return respuesta;
+        }
+
+        // Normalizar separador ;
+        String header = lineas.get(0).trim().replace(",", ";");
+        List<String> columnas = Arrays.asList(header.split(";"));
+
+        // Detectar tipo
+        if (columnas.equals(H_CITAS)) {
+            respuesta.put("citas", parseCitas(lineas));
+        } else if (columnas.equals(H_PACIENTES)) {
+            respuesta.put("pacientes", parsePacientes(lineas));
+        } else if (columnas.equals(H_INVENTARIO)) {
+            respuesta.put("inventario", parseInventario(lineas));
+        } else {
+            System.out.println(ANSI.RED + " El archivo no coincide con ningún dataset conocido." + ANSI.RESET);
+        }
+
+        return respuesta;
     }
+
+
+    // ============================================================
+    // PARSEO DE CITAS
+    // ============================================================
+
+    private static List<Cita> parseCitas(List<String> lineas) {
+
+        List<Cita> lista = new ArrayList<>();
+
+        for (int i = 1; i < lineas.size(); i++) {
+
+            String[] p = lineas.get(i).split(";");
+
+            if (p.length < 3) continue;
+
+            Cita c = new Cita(
+                    p[0].trim(),
+                    p[1].trim(),
+                    LocalDateTime.parse(p[2].trim())
+            );
+
+            lista.add(c);
+        }
+
+        return lista;
+    }
+
+
+    // ============================================================
+    // PARSEO DE PACIENTES
+    // ============================================================
+
+    private static List<Paciente> parsePacientes(List<String> lineas) {
+
+        List<Paciente> lista = new ArrayList<>();
+
+        for (int i = 1; i < lineas.size(); i++) {
+
+            String[] p = lineas.get(i).split(";");
+
+            if (p.length < 3) continue;
+
+            Paciente pac = new Paciente(
+                    p[0].trim(),
+                    p[1].trim(),
+                    Integer.parseInt(p[2].trim())
+            );
+
+            lista.add(pac);
+        }
+
+        return lista;
+    }
+
+
+    // ============================================================
+    // PARSEO DE INVENTARIO
+    // ============================================================
+
+    private static List<InventarioItem> parseInventario(List<String> lineas) {
+
+        List<InventarioItem> lista = new ArrayList<>();
+
+        for (int i = 1; i < lineas.size(); i++) {
+
+            String[] p = lineas.get(i).split(";");
+
+            if (p.length < 3) continue;
+
+            InventarioItem item = new InventarioItem(
+                    p[0].trim(),
+                    p[1].trim(),
+                    Integer.parseInt(p[2].trim())
+            );
+
+            lista.add(item);
+        }
+
+        return lista;
+    }
+
 }

@@ -1,83 +1,58 @@
 package ed.u2.model;
 
+import java.time.LocalDateTime;
+
 /**
- * Autor: R + ChatGPT
+ * Autor: R 
  * Fecha: 2025
  *
- * Modelo que representa una Cita en el sistema.
- *
- * Comparable: se ordena por fecha (String ISO), luego por id_cita.
+ * Representa una cita médica con:
+ *  - id
+ *  - apellido del paciente
+ *  - fecha y hora de la cita
  */
 public class Cita implements Comparable<Cita> {
 
-    private int idCita;
-    private String fecha;        // formato YYYY-MM-DD
-    private String idPaciente;
-    private String estado;
+    private String id;
+    private String apellido;
+    private LocalDateTime fechaHora;
 
-    public Cita(int idCita, String idPaciente, String fecha, String estado) {
-        this.idCita = idCita;
-        this.fecha = fecha;
-        this.idPaciente = idPaciente;
-        this.estado = estado;
+    // CONSTRUCTOR QUE EL CSV NECESITA
+    public Cita(String id, String apellido, LocalDateTime fechaHora) {
+        this.id = id;
+        this.apellido = apellido;
+        this.fechaHora = fechaHora;
     }
 
-    // -------------------------------
-    // GETTERS Y SETTERS
-    // -------------------------------
-    public int getIdCita() {
-        return idCita;
+   
+    // GETTERS / SETTERS
+    public String getId() {
+        return id;
     }
 
-    public void setIdCita(int idCita) {
-        this.idCita = idCita;
+    public String getApellido() {
+        return apellido;
     }
 
-    public String getFecha() {
-        return fecha;
+    public LocalDateTime getFechaHora() {
+        return fechaHora;
     }
 
-    public void setFecha(String fecha) {
-        this.fecha = fecha;
-    }
+    
+    // compareTo — criterio de ordenación por defecto
 
-    public String getIdPaciente() {
-        return idPaciente;
-    }
-
-    public void setIdPaciente(String idPaciente) {
-        this.idPaciente = idPaciente;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
-
-    // -------------------------------
-    // COMPARABLE
-    // -------------------------------
     @Override
     public int compareTo(Cita o) {
-        int cmp = this.fecha.compareTo(o.fecha);
-        if (cmp != 0) return cmp;
-
-        return Integer.compare(this.idCita, o.idCita);
+        // Ordenamiento por fecha y hora
+        return this.fechaHora.compareTo(o.fechaHora);
     }
 
-    // -------------------------------
-    // TO STRING
-    // -------------------------------
+    // toString (para mostrar en lista)
+
     @Override
     public String toString() {
-        return "Cita{" +
-                "idCita=" + idCita +
-                ", idPaciente='" + idPaciente + '\'' +
-                ", fecha='" + fecha + '\'' +
-                ", estado='" + estado + '\'' +
-                '}';
+        return id + " | " + apellido + " | " + fechaHora;
     }
+
+    
 }

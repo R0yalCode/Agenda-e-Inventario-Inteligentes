@@ -1,7 +1,7 @@
 package ed.u2.util;
 
 /**
- * Autor: R + ChatGPT
+ * Autor: R 
  * Fecha: 2025
  *
  * Códigos ANSI para colorear texto en consola.

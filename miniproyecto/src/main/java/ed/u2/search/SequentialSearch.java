@@ -1,64 +1,111 @@
 package ed.u2.search;
 
-import java.util.ArrayList;
+import ed.u2.util.ProgressBar;
 import java.util.List;
 
-/**
- * Autor: R 
- * Fecha: 2025
- *
- * Implementa las variantes de Búsqueda Secuencial:
- *  - Primera coincidencia
- *  - Última coincidencia
- *  - Todas las coincidencias (findAll)
- *  - Centinela
- *
- * Entrada: Arreglo o lista a evaluar, clave de búsqueda.
- * Salida: Índices encontrados + estadísticas de búsqueda.
- */
 public class SequentialSearch {
 
-    /**
-     * Búsqueda secuencial tradicional para obtener la primera coincidencia.
-     *
-     * @param arr Arreglo donde se realiza la búsqueda.
-     * @param clave Valor a buscar.
-     * @return Índice de la primera coincidencia o -1 si no existe.
-     */
-    public static <T> int buscarPrimero(T[] arr, T clave) {
-        return -1; // Implementación en fase posterior
+    // ============================================================
+    // PRIMERA COINCIDENCIA
+    // ============================================================
+
+    public static <T> SearchStats first(T[] arr, T target) {
+
+        SearchStats st = new SearchStats();
+        long t0 = System.nanoTime();
+
+        for (int i = 0; i < arr.length; i++) {
+
+            st.comparaciones++;
+
+            if (arr[i].equals(target)) {
+                st.resultadosEncontrados = 1;
+                break;
+            }
+
+            ProgressBar.mostrar((double) i / arr.length);
+        }
+
+        st.tiempoNs = System.nanoTime() - t0;
+        return st;
     }
 
-    /**
-     * Búsqueda secuencial para obtener la última coincidencia.
-     *
-     * @param arr Arreglo donde se realiza la búsqueda.
-     * @param clave Valor a buscar.
-     * @return Índice de la última coincidencia o -1 si no existe.
-     */
-    public static <T> int buscarUltimo(T[] arr, T clave) {
-        return -1;
+    // ============================================================
+    // ÚLTIMA COINCIDENCIA
+    // ============================================================
+
+    public static <T> SearchStats last(T[] arr, T target) {
+
+        SearchStats st = new SearchStats();
+        long t0 = System.nanoTime();
+
+        for (int i = arr.length - 1; i >= 0; i--) {
+
+            st.comparaciones++;
+
+            if (arr[i].equals(target)) {
+                st.resultadosEncontrados = 1;
+                break;
+            }
+
+            ProgressBar.mostrar((double) (arr.length - i) / arr.length);
+        }
+
+        st.tiempoNs = System.nanoTime() - t0;
+        return st;
     }
 
-    /**
-     * Búsqueda que obtiene todos los índices donde aparece la clave.
-     *
-     * @param arr Arreglo donde se realiza la búsqueda.
-     * @param clave Valor buscado.
-     * @return Lista de índices encontrados.
-     */
-    public static <T> List<Integer> buscarTodos(T[] arr, T clave) {
-        return new ArrayList<>();
+    // ============================================================
+    // ENCONTRAR TODOS
+    // ============================================================
+
+    public static <T> SearchStats findAll(T[] arr, T target, List<T> resultados) {
+
+        SearchStats st = new SearchStats();
+        long t0 = System.nanoTime();
+
+        for (int i = 0; i < arr.length; i++) {
+
+            st.comparaciones++;
+
+            if (arr[i].equals(target)) {
+                resultados.add(arr[i]);
+                st.resultadosEncontrados++;
+            }
+
+            ProgressBar.mostrar((double) i / arr.length);
+        }
+
+        st.tiempoNs = System.nanoTime() - t0;
+        return st;
     }
 
-    /**
-     * Búsqueda secuencial optimizada mediante centinela.
-     *
-     * @param arr Arreglo donde se colocará un centinela temporal.
-     * @param clave Valor buscado.
-     * @return Índice encontrado o -1.
-     */
-    public static <T> int buscarCentinela(T[] arr, T clave) {
-        return -1;
+    // ============================================================
+    // CENTINELA
+    // ============================================================
+
+    public static <T> SearchStats centinela(T[] arr, T target) {
+
+        SearchStats st = new SearchStats();
+        long t0 = System.nanoTime();
+
+        T ultimo = arr[arr.length - 1];
+        arr[arr.length - 1] = target;
+
+        int i = 0;
+        while (!arr[i].equals(target)) {
+            st.comparaciones++;
+            i++;
+
+            ProgressBar.mostrar((double) i / arr.length);
+        }
+
+        arr[arr.length - 1] = ultimo;
+
+        if (i < arr.length - 1 || ultimo.equals(target))
+            st.resultadosEncontrados = 1;
+
+        st.tiempoNs = System.nanoTime() - t0;
+        return st;
     }
 }

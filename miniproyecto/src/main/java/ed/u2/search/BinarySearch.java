@@ -1,65 +1,37 @@
 package ed.u2.search;
 
-import ed.u2.util.ANSI;
+import ed.u2.util.ProgressBar;
 
-/**
- * Autor: R + ChatGPT
- * Fecha: 2025
- *
- * Implementación de Búsqueda Binaria en arreglos ordenados.
- */
 public class BinarySearch {
 
-    private static void barra(int actual, int total) {
-        int width = 35;
-        int progreso = (actual * 100) / total;
-        int llenos = (progreso * width) / 100;
+    public static <T extends Comparable<T>> SearchStats buscar(T[] arr, T target) {
 
-        StringBuilder b = new StringBuilder("\r[");
-        for (int i = 0; i < width; i++)
-            b.append(i < llenos ? "=" : " ");
-        b.append("] ").append(progreso).append("%");
+        SearchStats st = new SearchStats();
+        long t0 = System.nanoTime();
 
-        System.out.print(ANSI.GREEN + b + ANSI.RESET);
-    }
+        int left = 0, right = arr.length - 1;
+        int iter = 0;
 
-    public static <T extends Comparable<T>> SearchStatistics buscar(
-            T[] arr, T clave, boolean barraProgreso) {
+        while (left <= right) {
 
-        long inicio = System.nanoTime();
+            int mid = (left + right) / 2;
+            st.comparaciones++;
 
-        int inicioIdx = 0;
-        int finIdx = arr.length - 1;
-        int pasos = 0;
-
-        boolean encontrado = false;
-
-        while (inicioIdx <= finIdx) {
-
-            if (barraProgreso) barra(pasos++, arr.length);
-
-            int mid = (inicioIdx + finIdx) / 2;
-            int cmp = clave.compareTo(arr[mid]);
-
-            if (cmp == 0) {
-                encontrado = true;
+            if (arr[mid].equals(target)) {
+                st.resultadosEncontrados = 1;
                 break;
             }
-            if (cmp > 0)
-                inicioIdx = mid + 1;
+
+            if (arr[mid].compareTo(target) < 0)
+                left = mid + 1;
             else
-                finIdx = mid - 1;
+                right = mid - 1;
+
+            iter++;
+            ProgressBar.mostrar((double) iter / arr.length);
         }
 
-        long fin = System.nanoTime();
-
-        SearchStatistics stats = new SearchStatistics();
-        stats.setAlgoritmo("Binaria");
-        stats.setClave(String.valueOf(clave));
-        stats.setCoincidencias(encontrado ? 1 : 0);
-        stats.setTiempoNs(fin - inicio);
-        stats.setMarcaTiempo(java.time.LocalDateTime.now().toString());
-
-        return stats;
+        st.tiempoNs = System.nanoTime() - t0;
+        return st;
     }
 }

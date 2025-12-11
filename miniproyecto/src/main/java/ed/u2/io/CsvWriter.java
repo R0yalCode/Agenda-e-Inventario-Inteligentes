@@ -1,13 +1,13 @@
 package ed.u2.io;
 
 import ed.u2.util.ANSI;
-import ed.u2.io.FileUtils;
 
 import java.io.*;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
- * Autor: R + ChatGPT
+ * Autor: R 
  * Fecha: 2025
  *
  * Clase para exportar datos a CSV.

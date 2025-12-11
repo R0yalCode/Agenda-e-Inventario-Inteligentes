@@ -1,17 +1,15 @@
 package ed.u2.sorting;
 
-import ed.u2.util.ANSI;
+import ed.u2.stats.OperationStats;
 
-/**
- * Autor: R + ChatGPT
- * Fecha: 2025
- *
- * Algoritmo de Selección (Selection Sort).
- */
 public class SelectionSorter {
 
-    public static <T extends Comparable<T>> void sort(
-            T[] arr, boolean asc, boolean mostrarBarra) {
+    public static <T extends Comparable<T>> OperationStats sort(T[] arr, boolean asc) {
+
+        OperationStats st = new OperationStats();
+
+        long comp = 0, swp = 0;
+        long t0 = System.nanoTime();
 
         int n = arr.length;
 
@@ -20,43 +18,27 @@ public class SelectionSorter {
             int idx = i;
 
             for (int j = i + 1; j < n; j++) {
-
-                boolean condicion =
-                        asc ? arr[j].compareTo(arr[idx]) < 0
-                            : arr[j].compareTo(arr[idx]) > 0;
-
-                if (condicion) {
+                comp++;
+                if ((asc && arr[j].compareTo(arr[idx]) < 0) ||
+                    (!asc && arr[j].compareTo(arr[idx]) > 0)) {
                     idx = j;
                 }
             }
 
-            T temp = arr[i];
-            arr[i] = arr[idx];
-            arr[idx] = temp;
-
-            if (mostrarBarra)
-                mostrarProgreso(i, n);
+            if (idx != i) {
+                T aux = arr[i];
+                arr[i] = arr[idx];
+                arr[idx] = aux;
+                swp++;
+            }
         }
 
-        if (mostrarBarra)
-            System.out.println();
-    }
+        long t1 = System.nanoTime();
 
-    private static void mostrarProgreso(int actual, int total) {
+        st.setComparisons(comp);
+        st.setSwaps(swp);
+        st.setTime(t1 - t0);
 
-        int width = 35;
-        int progreso = (actual * 100) / (total - 1);
-        int llenos = (progreso * width) / 100;
-
-        StringBuilder barra = new StringBuilder();
-        barra.append("\r[");
-
-        for (int i = 0; i < width; i++) {
-            barra.append(i < llenos ? "=" : " ");
-        }
-
-        barra.append("] ").append(progreso).append("%");
-
-        System.out.print(ANSI.YELLOW + barra + ANSI.RESET);
+        return st;
     }
 }

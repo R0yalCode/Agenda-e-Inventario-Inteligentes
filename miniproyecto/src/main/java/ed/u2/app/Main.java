@@ -6,14 +6,10 @@ package ed.u2.app;
  *
  * Punto de entrada principal del sistema.
  */
+
 public class Main {
-
     public static void main(String[] args) {
-        AppContext context = new AppContext();
-        MenuPrincipal menu = new MenuPrincipal(context);
-
+        MenuPrincipal menu = new MenuPrincipal(); 
         menu.iniciar();
     }
 }
-
-

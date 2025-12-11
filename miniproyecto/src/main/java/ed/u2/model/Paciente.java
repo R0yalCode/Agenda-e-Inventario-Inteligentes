@@ -1,69 +1,66 @@
 package ed.u2.model;
 
 /**
- * Autor: R 
+ * Autor:  R
  * Fecha: 2025
  *
- * Modelo para un Paciente.
- *
- * Comparable: se ordena alfabéticamente por nombre.
+ * Representa un paciente con:
+ *  - id (PAC-0001)
+ *  - apellido (Zambrano)
+ *  - prioridad (1,2,3)
  */
 public class Paciente implements Comparable<Paciente> {
 
-    private int idPaciente;
-    private String nombre;
-    private String telefono;
+    private String id;
+    private String apellido;
+    private int prioridad;
 
-    public Paciente(int idPaciente, String nombre, String telefono) {
-        this.idPaciente = idPaciente;
-        this.nombre = nombre;
-        this.telefono = telefono;
+    // ============================================================
+    // CONSTRUCTOR COMPATIBLE CON CsvLoader
+    // ============================================================
+
+    public Paciente(String id, String apellido, int prioridad) {
+        this.id = id;
+        this.apellido = apellido;
+        this.prioridad = prioridad;
     }
 
-    // -------------------------------
-    // GETTERS Y SETTERS
-    // -------------------------------
-    public int getIdPaciente() {
-        return idPaciente;
+    // ============================================================
+    // GETTERS
+    // ============================================================
+
+    public String getId() {
+        return id;
     }
 
-    public void setIdPaciente(int idPaciente) {
-        this.idPaciente = idPaciente;
+    public String getApellido() {
+        return apellido;
     }
 
-    public String getNombre() {
-        return nombre;
+    public int getPrioridad() {
+        return prioridad;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
+    // ============================================================
+    // compareTo – criterio de ordenación por defecto
+    // ============================================================
 
-    public String getTelefono() {
-        return telefono;
-    }
-
-    public void setTelefono(String telefono) {
-        this.telefono = telefono;
-    }
-
-    // -------------------------------
-    // COMPARABLE
-    // -------------------------------
     @Override
     public int compareTo(Paciente o) {
-        return this.nombre.compareToIgnoreCase(o.nombre);
+        // Ordenar por prioridad ASC (1 = más urgente)
+        int cmp = Integer.compare(this.prioridad, o.prioridad);
+        if (cmp != 0) return cmp;
+
+        // Si prioridades son iguales, por apellido
+        return this.apellido.compareTo(o.apellido);
     }
 
-    // -------------------------------
-    // TO STRING
-    // -------------------------------
+    // ============================================================
+    // toString
+    // ============================================================
+
     @Override
     public String toString() {
-        return "Paciente{" +
-                "idPaciente=" + idPaciente +
-                ", nombre='" + nombre + '\'' +
-                ", telefono='" + telefono + '\'' +
-                '}';
+        return id + " | " + apellido + " | prioridad=" + prioridad;
     }
 }

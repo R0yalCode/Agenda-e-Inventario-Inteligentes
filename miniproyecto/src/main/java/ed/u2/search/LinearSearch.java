@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Autor: R + ChatGPT
+ * Autor: R 
  * Fecha: 2025
  *
  * Búsqueda secuencial:

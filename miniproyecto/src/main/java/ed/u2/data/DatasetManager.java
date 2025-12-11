@@ -1,1302 +1,299 @@
 package ed.u2.data;
 
+import ed.u2.app.HistoryManager;
+import ed.u2.io.CsvLoader;
+import ed.u2.model.*;
 import ed.u2.sll.SinglyLinkedList;
+
+import java.io.File;
 import java.util.*;
 
 /**
  * Autor: R + ChatGPT
  * Fecha: 2025
  *
- * Gestor de datasets embebidos en memoria.
- * Garantiza que el dataset se cargue siempre correctamente
- * sin depender de archivos externos.
- *
- * Cada dataset tiene:
- * - arreglo base
- * - SLL equivalente
- * - tipo de dataset
+ * Maneja TODO el estado del dataset actual:
+ * - Tipo detectado
+ * - Lista original (List)
+ * - Arreglo para ordenar (T[])
+ * - Lista SLL para búsquedas secuenciales
+ * - Carga oficial y carga manual
  */
 public class DatasetManager {
 
-    private static Object[] datasetArray; // Para ordenaciones y búsquedas
-    private static SinglyLinkedList<Object> datasetSLL; // versión enlazada
-    private static DatasetType tipo; // tipo del dataset actual
+    // ============================================================
+    // ESTADO GLOBAL
+    // ============================================================
 
-    public static Object[] getDatasetArray() {
-        return datasetArray;
+    private static DatasetType tipoActual = DatasetType.NONE;
+
+    private static List<?> listaActual = null;
+    private static Object[] arrayActual = null;
+    private static SinglyLinkedList<?> sllActual = null;
+
+    private static String rutaActual = null;
+
+    // ============================================================
+    // RUTA DEL DIRECTORIO DE DATASETS
+    // ============================================================
+
+    private static final String DATASET_DIR;
+
+static {
+
+    // Directorio raíz del proyecto
+    File base = new File(System.getProperty("user.dir"));
+
+    // Carpeta de datasets relativa al proyecto
+    File probable = new File(base, "resources/datasets");
+
+    if (probable.exists() && probable.isDirectory()) {
+        DATASET_DIR = probable.getAbsolutePath();
+    } else {
+        System.out.println("No se encontró 'resources/datasets'. Creando carpeta…");
+        probable.mkdirs(); 
+        DATASET_DIR = probable.getAbsolutePath();
+    }
+}
+
+
+    // ============================================================
+    // ENUM
+    // ============================================================
+
+    public enum DatasetType {
+        CITAS,
+        PACIENTES,
+        INVENTARIO,
+        NONE
     }
 
-    public static SinglyLinkedList<Object> getDatasetSLL() {
-        return datasetSLL;
+    // ============================================================
+    // GETTERS
+    // ============================================================
+
+    public static boolean hayDataset() {
+        return tipoActual != DatasetType.NONE && arrayActual != null;
     }
 
-    public static DatasetType getTipo() {
-        return tipo;
+    public static DatasetType getTipoActual() {
+        return tipoActual;
     }
 
-    // =============================
-    // DATASETS EMBEBIDOS
-    // =============================
+    public static Object[] getArray() {
+        return arrayActual;
+    }
 
-    private static final String[] CITAS_100 = new String[] {
-            "CITA-001;Navarro;2025-03-04T08:10",
-            "CITA-002;Vega;2025-03-09T10:30",
-            "CITA-003;Torres;2025-03-05T15:50",
-            "CITA-004;Ramírez;2025-03-22T15:50",
-            "CITA-005;Paredes;2025-03-18T08:50",
-            "CITA-006;Vargas;2025-03-14T08:20",
-            "CITA-007;Guerrero;2025-03-03T10:10",
-            "CITA-008;Torres;2025-03-17T14:20",
-            "CITA-009;Guerrero;2025-03-18T10:00",
-            "CITA-010;Sánchez;2025-03-21T15:20",
-            "CITA-011;Aguirre;2025-03-14T10:20",
-            "CITA-012;Benítez;2025-03-19T10:50",
-            "CITA-013;Chávez;2025-03-28T08:00",
-            "CITA-014;Suárez;2025-03-26T09:40",
-            "CITA-015;Sánchez;2025-03-14T11:30",
-            "CITA-016;Castro;2025-03-05T10:10",
-            "CITA-017;Suárez;2025-03-11T09:00",
-            "CITA-018;Cedeño;2025-03-13T09:00",
-            "CITA-019;Cordero;2025-03-28T11:40",
-            "CITA-020;Serrano;2025-03-09T16:30",
-            "CITA-021;Naranjo;2025-03-24T12:50",
-            "CITA-022;Aguirre;2025-03-04T17:50",
-            "CITA-023;Salazar;2025-03-03T13:50",
-            "CITA-024;Ortega;2025-03-27T14:40",
-            "CITA-025;Serrano;2025-03-29T17:10",
-            "CITA-026;Cordero;2025-03-19T10:00",
-            "CITA-027;Sánchez;2025-03-03T08:20",
-            "CITA-028;Zambrano;2025-03-08T16:10",
-            "CITA-029;Ortega;2025-03-03T17:00",
-            "CITA-030;Torres;2025-03-28T09:00",
-            "CITA-031;Salazar;2025-03-09T12:50",
-            "CITA-032;Navarro;2025-03-27T11:50",
-            "CITA-033;Vera;2025-03-12T11:40",
-            "CITA-034;García;2025-03-22T10:50",
-            "CITA-035;Sánchez;2025-03-30T15:10",
-            "CITA-036;Navarro;2025-03-03T14:20",
-            "CITA-037;Navarro;2025-03-06T13:40",
-            "CITA-038;Vega;2025-03-08T09:40",
-            "CITA-039;Benítez;2025-03-13T10:50",
-            "CITA-040;Rojas;2025-03-21T15:20",
-            "CITA-041;Aguirre;2025-03-08T15:10",
-            "CITA-042;Espinoza;2025-03-27T16:10",
-            "CITA-043;Suárez;2025-03-02T10:20",
-            "CITA-044;Gómez;2025-03-02T16:30",
-            "CITA-045;Espinoza;2025-03-13T10:50",
-            "CITA-046;Cedeño;2025-03-07T17:40",
-            "CITA-047;Vargas;2025-03-29T15:30",
-            "CITA-048;Espinoza;2025-03-07T14:50",
-            "CITA-049;Carrillo;2025-03-13T17:20",
-            "CITA-050;Rojas;2025-03-21T12:50",
-            "CITA-051;Molina;2025-03-09T09:20",
-            "CITA-052;Torres;2025-03-24T13:50",
-            "CITA-053;Aguirre;2025-03-09T15:50",
-            "CITA-054;Vargas;2025-03-14T17:30",
-            "CITA-055;Vargas;2025-03-13T11:50",
-            "CITA-056;Torres;2025-03-05T13:20",
-            "CITA-057;Carrillo;2025-03-03T16:00",
-            "CITA-058;Naranjo;2025-03-28T09:10",
-            "CITA-059;Molina;2025-03-21T09:40",
-            "CITA-060;Chávez;2025-03-22T12:30",
-            "CITA-061;Serrano;2025-03-03T12:00",
-            "CITA-062;Salazar;2025-03-20T12:50",
-            "CITA-063;Pineda;2025-03-09T13:50",
-            "CITA-064;Mendoza;2025-03-31T08:00",
-            "CITA-065;Zambrano;2025-03-24T09:10",
-            "CITA-066;Zambrano;2025-03-29T13:40",
-            "CITA-067;Suárez;2025-03-09T16:10",
-            "CITA-068;Navarro;2025-03-11T09:10",
-            "CITA-069;Ortega;2025-03-14T09:40",
-            "CITA-070;Benítez;2025-03-01T15:40",
-            "CITA-071;Paredes;2025-03-24T10:40",
-            "CITA-072;Pineda;2025-03-25T09:50",
-            "CITA-073;Pineda;2025-03-30T09:00",
-            "CITA-074;Mendoza;2025-03-21T11:10",
-            "CITA-075;Gómez;2025-03-21T13:20",
-            "CITA-076;Serrano;2025-03-07T09:30",
-            "CITA-077;Cordero;2025-03-25T09:40",
-            "CITA-078;Aguirre;2025-03-31T16:10",
-            "CITA-079;Rojas;2025-03-17T17:40",
-            "CITA-080;Guerrero;2025-03-20T11:20",
-            "CITA-081;Carrillo;2025-03-01T09:10",
-            "CITA-082;Rojas;2025-03-12T17:20",
-            "CITA-083;Gómez;2025-03-26T11:10",
-            "CITA-084;Torres;2025-03-02T10:30",
-            "CITA-085;Paredes;2025-03-19T18:00",
-            "CITA-086;Cedeño;2025-03-03T15:40",
-            "CITA-087;Carrillo;2025-03-27T08:40",
-            "CITA-088;Suárez;2025-03-18T16:10",
-            "CITA-089;Molina;2025-03-05T15:00",
-            "CITA-090;Carrillo;2025-03-31T13:50",
-            "CITA-091;Vera;2025-03-09T13:30",
-            "CITA-092;Mendoza;2025-03-20T12:30",
-            "CITA-093;García;2025-03-30T13:40",
-            "CITA-094;Suárez;2025-03-24T15:20",
-            "CITA-095;García;2025-03-23T11:10",
-            "CITA-096;Salazar;2025-03-22T14:50",
-            "CITA-097;Cordero;2025-03-15T17:30",
-            "CITA-098;Pineda;2025-03-15T09:10",
-            "CITA-099;Torres;2025-03-08T08:40",
-            "CITA-100;Espinoza;2025-03-01T14:10",
-    };
+    public static List<?> getList() {
+        return listaActual;
+    }
 
-    private static final String[] CITAS_100_CASI = new String[] {
-            "CITA-081;Carrillo;2025-03-01T09:10",
-            "CITA-100;Espinoza;2025-03-01T14:10",
-            "CITA-070;Benítez;2025-03-01T15:40",
-            "CITA-073;Pineda;2025-03-30T09:00",
-            "CITA-084;Torres;2025-03-02T10:30",
-            "CITA-044;Gómez;2025-03-02T16:30",
-            "CITA-027;Sánchez;2025-03-03T08:20",
-            "CITA-007;Guerrero;2025-03-03T10:10",
-            "CITA-061;Serrano;2025-03-03T12:00",
-            "CITA-023;Salazar;2025-03-03T13:50",
-            "CITA-036;Navarro;2025-03-03T14:20",
-            "CITA-086;Cedeño;2025-03-03T15:40",
-            "CITA-057;Carrillo;2025-03-03T16:00",
-            "CITA-043;Suárez;2025-03-02T10:20",
-            "CITA-014;Suárez;2025-03-26T09:40",
-            "CITA-022;Aguirre;2025-03-04T17:50",
-            "CITA-016;Castro;2025-03-05T10:10",
-            "CITA-051;Molina;2025-03-09T09:20",
-            "CITA-089;Molina;2025-03-05T15:00",
-            "CITA-003;Torres;2025-03-05T15:50",
-            "CITA-037;Navarro;2025-03-06T13:40",
-            "CITA-076;Serrano;2025-03-07T09:30",
-            "CITA-048;Espinoza;2025-03-07T14:50",
-            "CITA-046;Cedeño;2025-03-07T17:40",
-            "CITA-099;Torres;2025-03-08T08:40",
-            "CITA-038;Vega;2025-03-08T09:40",
-            "CITA-041;Aguirre;2025-03-08T15:10",
-            "CITA-028;Zambrano;2025-03-08T16:10",
-            "CITA-056;Torres;2025-03-05T13:20",
-            "CITA-002;Vega;2025-03-09T10:30",
-            "CITA-031;Salazar;2025-03-09T12:50",
-            "CITA-020;Serrano;2025-03-09T16:30",
-            "CITA-063;Pineda;2025-03-09T13:50",
-            "CITA-053;Aguirre;2025-03-09T15:50",
-            "CITA-067;Suárez;2025-03-09T16:10",
-            "CITA-091;Vera;2025-03-09T13:30",
-            "CITA-017;Suárez;2025-03-11T09:00",
-            "CITA-068;Navarro;2025-03-11T09:10",
-            "CITA-033;Vera;2025-03-12T11:40",
-            "CITA-082;Rojas;2025-03-12T17:20",
-            "CITA-018;Cedeño;2025-03-13T09:00",
-            "CITA-039;Benítez;2025-03-13T10:50",
-            "CITA-045;Espinoza;2025-03-13T10:50",
-            "CITA-055;Vargas;2025-03-13T11:50",
-            "CITA-049;Carrillo;2025-03-13T17:20",
-            "CITA-006;Vargas;2025-03-14T08:20",
-            "CITA-069;Ortega;2025-03-14T09:40",
-            "CITA-011;Aguirre;2025-03-14T10:20",
-            "CITA-015;Sánchez;2025-03-14T11:30",
-            "CITA-054;Vargas;2025-03-14T17:30",
-            "CITA-098;Pineda;2025-03-15T09:10",
-            "CITA-097;Cordero;2025-03-15T17:30",
-            "CITA-008;Torres;2025-03-17T14:20",
-            "CITA-079;Rojas;2025-03-17T17:40",
-            "CITA-005;Paredes;2025-03-18T08:50",
-            "CITA-009;Guerrero;2025-03-18T10:00",
-            "CITA-088;Suárez;2025-03-18T16:10",
-            "CITA-026;Cordero;2025-03-19T10:00",
-            "CITA-012;Benítez;2025-03-19T10:50",
-            "CITA-085;Paredes;2025-03-19T18:00",
-            "CITA-080;Guerrero;2025-03-20T11:20",
-            "CITA-092;Mendoza;2025-03-20T12:30",
-            "CITA-062;Salazar;2025-03-20T12:50",
-            "CITA-059;Molina;2025-03-21T09:40",
-            "CITA-074;Mendoza;2025-03-21T11:10",
-            "CITA-050;Rojas;2025-03-21T12:50",
-            "CITA-075;Gómez;2025-03-21T13:20",
-            "CITA-010;Sánchez;2025-03-21T15:20",
-            "CITA-040;Rojas;2025-03-21T15:20",
-            "CITA-034;García;2025-03-22T10:50",
-            "CITA-060;Chávez;2025-03-22T12:30",
-            "CITA-096;Salazar;2025-03-22T14:50",
-            "CITA-004;Ramírez;2025-03-22T15:50",
-            "CITA-095;García;2025-03-23T11:10",
-            "CITA-065;Zambrano;2025-03-24T09:10",
-            "CITA-071;Paredes;2025-03-24T10:40",
-            "CITA-021;Naranjo;2025-03-24T12:50",
-            "CITA-052;Torres;2025-03-24T13:50",
-            "CITA-094;Suárez;2025-03-24T15:20",
-            "CITA-077;Cordero;2025-03-25T09:40",
-            "CITA-072;Pineda;2025-03-25T09:50",
-            "CITA-001;Navarro;2025-03-04T08:10",
-            "CITA-083;Gómez;2025-03-26T11:10",
-            "CITA-087;Carrillo;2025-03-27T08:40",
-            "CITA-032;Navarro;2025-03-27T11:50",
-            "CITA-024;Ortega;2025-03-27T14:40",
-            "CITA-042;Espinoza;2025-03-27T16:10",
-            "CITA-013;Chávez;2025-03-28T08:00",
-            "CITA-030;Torres;2025-03-28T09:00",
-            "CITA-058;Naranjo;2025-03-28T09:10",
-            "CITA-019;Cordero;2025-03-28T11:40",
-            "CITA-066;Zambrano;2025-03-29T13:40",
-            "CITA-047;Vargas;2025-03-29T15:30",
-            "CITA-025;Serrano;2025-03-29T17:10",
-            "CITA-029;Ortega;2025-03-03T17:00",
-            "CITA-093;García;2025-03-30T13:40",
-            "CITA-035;Sánchez;2025-03-30T15:10",
-            "CITA-064;Mendoza;2025-03-31T08:00",
-            "CITA-090;Carrillo;2025-03-31T13:50",
-            "CITA-078;Aguirre;2025-03-31T16:10",
-    };
+    public static SinglyLinkedList<?> getSLL() {
+        return sllActual;
+    }
 
-    private static final String[] INVENTARIO_500_INVERSO = new String[] {
-            "ITEM-0001;Agujas Hipodérmicas 21G;500",
-            "ITEM-0002;Gasas 5x5;499",
-            "ITEM-0003;Guante Nitrilo Talla M;498",
-            "ITEM-0004;Test Glucosa Tiras x50;497",
-            "ITEM-0005;Antiséptico Povidona 10% 120ml;496",
-            "ITEM-0006;Solución Salina 0.9% 1L;495",
-            "ITEM-0007;Catéter 18G;494",
-            "ITEM-0008;Vendas Elásticas 10cm;493",
-            "ITEM-0009;Test Glucosa Tiras x50;492",
-            "ITEM-0010;Gasas 10x10;491",
-            "ITEM-0011;Gel Ultrasónico 250ml;490",
-            "ITEM-0012;Test Glucosa Tiras x50;489",
-            "ITEM-0013;Collar isabelino Talla L;488",
-            "ITEM-0014;Clorhexidina 0.05% 1L;487",
-            "ITEM-0015;Suturas Nylon 3-0;486",
-            "ITEM-0016;Cubre Bocas Reutilizable;485",
-            "ITEM-0017;Guante Nitrilo Talla L;484",
-            "ITEM-0018;Guante Nitrilo Talla M;483",
-            "ITEM-0019;Clorhexidina 0.05% 1L;482",
-            "ITEM-0020;Catéter 22G;481",
-            "ITEM-0021;Catéter 18G;480",
-            "ITEM-0022;Collar isabelino Talla S;479",
-            "ITEM-0023;Suturas Nylon 4-0;478",
-            "ITEM-0024;Guante Nitrilo Talla M;477",
-            "ITEM-0025;Guantes de Látex Talla M;476",
-            "ITEM-0026;Catéter 20G;475",
-            "ITEM-0027;Limpia Pisos 1L;474",
-            "ITEM-0028;Agujas Hipodérmicas 23G;473",
-            "ITEM-0029;Toallas Desechables;472",
-            "ITEM-0030;Collar isabelino Talla L;471",
-            "ITEM-0031;Compresas Estériles;470",
-            "ITEM-0032;Catéter 18G;469",
-            "ITEM-0033;Bolsas Biohazard 30L;468",
-            "ITEM-0034;Suturas Nylon 3-0;467",
-            "ITEM-0035;Antiséptico Povidona 10% 120ml;466",
-            "ITEM-0036;Guante Nitrilo Talla S;465",
-            "ITEM-0037;Hisopos Estériles;464",
-            "ITEM-0038;Jeringa 10ml;463",
-            "ITEM-0039;Toallas Desechables;462",
-            "ITEM-0040;Cubre Bocas Reutilizable;461",
-            "ITEM-0041;Cinta Micropore 2.5cm;460",
-            "ITEM-0042;Antiséptico Povidona 10% 120ml;459",
-            "ITEM-0043;Jeringa 5ml;458",
-            "ITEM-0044;Catéter 22G;457",
-            "ITEM-0045;Hisopos Estériles;456",
-            "ITEM-0046;Cinta Micropore 2.5cm;455",
-            "ITEM-0047;Gasas 10x10;454",
-            "ITEM-0048;Clorhexidina 0.05% 1L;453",
-            "ITEM-0049;Bisturí #11;452",
-            "ITEM-0050;Gasas 10x10;451",
-            "ITEM-0051;Mascarilla Quirúrgica;450",
-            "ITEM-0052;Mascarilla Quirúrgica;449",
-            "ITEM-0053;Suturas Nylon 4-0;448",
-            "ITEM-0054;Solución Hartmann 1L;447",
-            "ITEM-0055;Guante Nitrilo Talla L;446",
-            "ITEM-0056;Guantes Desechables Vinilo M;445",
-            "ITEM-0057;Bolsas Biohazard 60L;444",
-            "ITEM-0058;Collar isabelino Talla L;443",
-            "ITEM-0059;Gasas 5x5;442",
-            "ITEM-0060;Bisturí #11;441",
-            "ITEM-0061;Clorhexidina 0.05% 1L;440",
-            "ITEM-0062;Guantes de Látex Talla M;439",
-            "ITEM-0063;Termómetro Digital;438",
-            "ITEM-0064;Agujas Hipodérmicas 21G;437",
-            "ITEM-0065;Suturas Poliglactina 910 3-0;436",
-            "ITEM-0066;Bisturí #10;435",
-            "ITEM-0067;Guantes de Látex Talla L;434",
-            "ITEM-0068;Catéter 20G;433",
-            "ITEM-0069;Limpia Pisos 1L;432",
-            "ITEM-0070;Alcohol 70% 500ml;431",
-            "ITEM-0071;Guante Nitrilo Talla L;430",
-            "ITEM-0072;Cánula Nasal;429",
-            "ITEM-0073;Catéter 18G;428",
-            "ITEM-0074;Termómetro Digital;427",
-            "ITEM-0075;Clorhexidina 0.05% 1L;426",
-            "ITEM-0076;Catéter 18G;425",
-            "ITEM-0077;Gasas 10x10;424",
-            "ITEM-0078;Bisturí #11;423",
-            "ITEM-0079;Antiséptico Povidona 10% 120ml;422",
-            "ITEM-0080;Bolsas Biohazard 60L;421",
-            "ITEM-0081;Agujas Hipodérmicas 21G;420",
-            "ITEM-0082;Bisturí #10;419",
-            "ITEM-0083;Jeringa 10ml;418",
-            "ITEM-0084;Bisturí #10;417",
-            "ITEM-0085;Mascarilla Quirúrgica;416",
-            "ITEM-0086;Catéter 22G;415",
-            "ITEM-0087;Cánula Nasal;414",
-            "ITEM-0088;Antiséptico Povidona 10% 120ml;413",
-            "ITEM-0089;Toallas Desechables;412",
-            "ITEM-0090;Gel Ultrasónico 250ml;411",
-            "ITEM-0091;Agujas Hipodérmicas 23G;410",
-            "ITEM-0092;Alcohol 70% 500ml;409",
-            "ITEM-0093;Suturas Nylon 4-0;408",
-            "ITEM-0094;Agujas Hipodérmicas 21G;407",
-            "ITEM-0095;Jeringa 10ml;406",
-            "ITEM-0096;Collar isabelino Talla L;405",
-            "ITEM-0097;Guantes Desechables Vinilo M;404",
-            "ITEM-0098;Solución Salina 0.9% 1L;403",
-            "ITEM-0099;Jeringa 10ml;402",
-            "ITEM-0100;Bolsas Biohazard 60L;401",
-            "ITEM-0101;Bisturí #11;400",
-            "ITEM-0102;Antiséptico Povidona 10% 120ml;399",
-            "ITEM-0103;Agujas Hipodérmicas 21G;398",
-            "ITEM-0104;Toallas Desechables;397",
-            "ITEM-0105;Guantes de Látex Talla M;396",
-            "ITEM-0106;Catéter 18G;395",
-            "ITEM-0107;Gel Ultrasónico 250ml;394",
-            "ITEM-0108;Esparadrapo 5cm x 10m;393",
-            "ITEM-0109;Alcohol 70% 1L;392",
-            "ITEM-0110;Catéter 18G;391",
-            "ITEM-0111;Guante Nitrilo Talla L;390",
-            "ITEM-0112;Esparadrapo 5cm x 10m;389",
-            "ITEM-0113;Bisturí #23;388",
-            "ITEM-0114;Antiséptico Povidona 10% 120ml;387",
-            "ITEM-0115;Alcohol 70% 500ml;386",
-            "ITEM-0116;Catéter 22G;385",
-            "ITEM-0117;Guantes de Látex Talla L;384",
-            "ITEM-0118;Limpia Pisos 1L;383",
-            "ITEM-0119;Esparadrapo 5cm x 10m;382",
-            "ITEM-0120;Catéter 22G;381",
-            "ITEM-0121;Agujas Hipodérmicas 23G;380",
-            "ITEM-0122;Lubricante Oftálmico 10ml;379",
-            "ITEM-0123;Bisturí #23;378",
-            "ITEM-0124;Agujas Hipodérmicas 23G;377",
-            "ITEM-0125;Bolsas Biohazard 60L;376",
-            "ITEM-0126;Jeringa 5ml;375",
-            "ITEM-0127;Solución Hartmann 1L;374",
-            "ITEM-0128;Vendas Elásticas 10cm;373",
-            "ITEM-0129;Solución Salina 0.9% 1L;372",
-            "ITEM-0130;Test Glucosa Tiras x50;371",
-            "ITEM-0131;Guantes de Látex Talla M;370",
-            "ITEM-0132;Collar isabelino Talla L;369",
-            "ITEM-0133;Solución Hartmann 1L;368",
-            "ITEM-0134;Test Glucosa Tiras x50;367",
-            "ITEM-0135;Suturas Nylon 3-0;366",
-            "ITEM-0136;Cubre Bocas Reutilizable;365",
-            "ITEM-0137;Suturas Nylon 3-0;364",
-            "ITEM-0138;Bisturí #23;363",
-            "ITEM-0139;Bisturí #10;362",
-            "ITEM-0140;Catéter 18G;361",
-            "ITEM-0141;Vendas Elásticas 10cm;360",
-            "ITEM-0142;Collar isabelino Talla S;359",
-            "ITEM-0143;Lubricante Oftálmico 10ml;358",
-            "ITEM-0144;Clorhexidina 0.05% 1L;357",
-            "ITEM-0145;Hisopos Estériles;356",
-            "ITEM-0146;Alcohol 70% 1L;355",
-            "ITEM-0147;Gasas 5x5;354",
-            "ITEM-0148;Jeringa 5ml;353",
-            "ITEM-0149;Agujas Hipodérmicas 21G;352",
-            "ITEM-0150;Jeringa 10ml;351",
-            "ITEM-0151;Gel Ultrasónico 250ml;350",
-            "ITEM-0152;Cubre Bocas Reutilizable;349",
-            "ITEM-0153;Suturas Nylon 4-0;348",
-            "ITEM-0154;Alcohol 70% 500ml;347",
-            "ITEM-0155;Bisturí #11;346",
-            "ITEM-0156;Bisturí #11;345",
-            "ITEM-0157;Suturas Nylon 4-0;344",
-            "ITEM-0158;Bolsas Biohazard 60L;343",
-            "ITEM-0159;Collar isabelino Talla M;342",
-            "ITEM-0160;Solución Hartmann 1L;341",
-            "ITEM-0161;Guantes de Látex Talla M;340",
-            "ITEM-0162;Guante Nitrilo Talla S;339",
-            "ITEM-0163;Gel Ultrasónico 250ml;338",
-            "ITEM-0164;Guantes Desechables Vinilo M;337",
-            "ITEM-0165;Gasas 5x5;336",
-            "ITEM-0166;Gel Ultrasónico 250ml;335",
-            "ITEM-0167;Collar isabelino Talla L;334",
-            "ITEM-0168;Hisopos Estériles;333",
-            "ITEM-0169;Antiséptico Povidona 10% 120ml;332",
-            "ITEM-0170;Agujas Hipodérmicas 23G;331",
-            "ITEM-0171;Cinta Micropore 2.5cm;330",
-            "ITEM-0172;Gasas 5x5;329",
-            "ITEM-0173;Termómetro Digital;328",
-            "ITEM-0174;Cubre Bocas Reutilizable;327",
-            "ITEM-0175;Jeringa 10ml;326",
-            "ITEM-0176;Bolsas Biohazard 60L;325",
-            "ITEM-0177;Guante Nitrilo Talla S;324",
-            "ITEM-0178;Guantes Desechables Vinilo M;323",
-            "ITEM-0179;Guantes Desechables Vinilo M;322",
-            "ITEM-0180;Solución Hartmann 1L;321",
-            "ITEM-0181;Collar isabelino Talla S;320",
-            "ITEM-0182;Hisopos Estériles;319",
-            "ITEM-0183;Jeringa 20ml;318",
-            "ITEM-0184;Collar isabelino Talla S;317",
-            "ITEM-0185;Gasas 10x10;316",
-            "ITEM-0186;Agujas Hipodérmicas 21G;315",
-            "ITEM-0187;Tijeras de Vendaje;314",
-            "ITEM-0188;Agujas Hipodérmicas 21G;313",
-            "ITEM-0189;Collar isabelino Talla S;312",
-            "ITEM-0190;Suturas Nylon 4-0;311",
-            "ITEM-0191;Catéter 20G;310",
-            "ITEM-0192;Jeringa 5ml;309",
-            "ITEM-0193;Bisturí #10;308",
-            "ITEM-0194;Hisopos Estériles;307",
-            "ITEM-0195;Jeringa 10ml;306",
-            "ITEM-0196;Collar isabelino Talla L;305",
-            "ITEM-0197;Collar isabelino Talla M;304",
-            "ITEM-0198;Guante Nitrilo Talla S;303",
-            "ITEM-0199;Suturas Nylon 4-0;302",
-            "ITEM-0200;Esparadrapo 5cm x 10m;301",
-            "ITEM-0201;Lubricante Oftálmico 10ml;300",
-            "ITEM-0202;Guante Nitrilo Talla M;299",
-            "ITEM-0203;Gasas 5x5;298",
-            "ITEM-0204;Bisturí #10;297",
-            "ITEM-0205;Tijeras de Vendaje;296",
-            "ITEM-0206;Solución Salina 0.9% 1L;295",
-            "ITEM-0207;Alcohol 70% 1L;294",
-            "ITEM-0208;Solución Salina 0.9% 1L;293",
-            "ITEM-0209;Guantes de Látex Talla L;292",
-            "ITEM-0210;Clorhexidina 0.05% 1L;291",
-            "ITEM-0211;Clorhexidina 0.05% 1L;290",
-            "ITEM-0212;Guantes Desechables Vinilo M;289",
-            "ITEM-0213;Lubricante Oftálmico 10ml;288",
-            "ITEM-0214;Alcohol 70% 500ml;287",
-            "ITEM-0215;Hisopos Estériles;286",
-            "ITEM-0216;Collar isabelino Talla L;285",
-            "ITEM-0217;Vendas Elásticas 10cm;284",
-            "ITEM-0218;Vendas Elásticas 10cm;283",
-            "ITEM-0219;Cánula Nasal;282",
-            "ITEM-0220;Desinfectante de Superficies 1L;281",
-            "ITEM-0221;Guantes de Látex Talla M;280",
-            "ITEM-0222;Jeringa 10ml;279",
-            "ITEM-0223;Solución Hartmann 1L;278",
-            "ITEM-0224;Collar isabelino Talla M;277",
-            "ITEM-0225;Suturas Nylon 4-0;276",
-            "ITEM-0226;Cubre Bocas Reutilizable;275",
-            "ITEM-0227;Catéter 22G;274",
-            "ITEM-0228;Collar isabelino Talla L;273",
-            "ITEM-0229;Hisopos Estériles;272",
-            "ITEM-0230;Guantes Desechables Vinilo M;271",
-            "ITEM-0231;Toallas Desechables;270",
-            "ITEM-0232;Catéter 20G;269",
-            "ITEM-0233;Limpia Pisos 1L;268",
-            "ITEM-0234;Tijeras de Vendaje;267",
-            "ITEM-0235;Bisturí #23;266",
-            "ITEM-0236;Cánula Nasal;265",
-            "ITEM-0237;Agujas Hipodérmicas 23G;264",
-            "ITEM-0238;Bisturí #10;263",
-            "ITEM-0239;Bolsas Biohazard 30L;262",
-            "ITEM-0240;Collar isabelino Talla M;261",
-            "ITEM-0241;Bolsas Biohazard 30L;260",
-            "ITEM-0242;Gasas 5x5;259",
-            "ITEM-0243;Solución Salina 0.9% 1L;258",
-            "ITEM-0244;Catéter 18G;257",
-            "ITEM-0245;Alcohol 70% 500ml;256",
-            "ITEM-0246;Cinta Micropore 2.5cm;255",
-            "ITEM-0247;Guante Nitrilo Talla M;254",
-            "ITEM-0248;Suturas Nylon 3-0;253",
-            "ITEM-0249;Guantes de Látex Talla M;252",
-            "ITEM-0250;Catéter 18G;251",
-            "ITEM-0251;Suturas Nylon 3-0;250",
-            "ITEM-0252;Catéter 18G;249",
-            "ITEM-0253;Guante Nitrilo Talla S;248",
-            "ITEM-0254;Alcohol 70% 500ml;247",
-            "ITEM-0255;Limpia Pisos 1L;246",
-            "ITEM-0256;Agujas Hipodérmicas 21G;245",
-            "ITEM-0257;Alcohol 70% 1L;244",
-            "ITEM-0258;Catéter 18G;243",
-            "ITEM-0259;Alcohol 70% 500ml;242",
-            "ITEM-0260;Guante Nitrilo Talla L;241",
-            "ITEM-0261;Cinta Micropore 2.5cm;240",
-            "ITEM-0262;Alcohol 70% 500ml;239",
-            "ITEM-0263;Collar isabelino Talla S;238",
-            "ITEM-0264;Solución Salina 0.9% 1L;237",
-            "ITEM-0265;Antiséptico Povidona 10% 120ml;236",
-            "ITEM-0266;Cánula Nasal;235",
-            "ITEM-0267;Lubricante Oftálmico 10ml;234",
-            "ITEM-0268;Catéter 22G;233",
-            "ITEM-0269;Collar isabelino Talla L;232",
-            "ITEM-0270;Vendas Elásticas 10cm;231",
-            "ITEM-0271;Guantes Desechables Vinilo M;230",
-            "ITEM-0272;Guantes de Látex Talla L;229",
-            "ITEM-0273;Guantes de Látex Talla L;228",
-            "ITEM-0274;Desinfectante de Superficies 1L;227",
-            "ITEM-0275;Solución Salina 0.9% 1L;226",
-            "ITEM-0276;Desinfectante de Superficies 1L;225",
-            "ITEM-0277;Compresas Estériles;224",
-            "ITEM-0278;Catéter 20G;223",
-            "ITEM-0279;Gasas 10x10;222",
-            "ITEM-0280;Gasas 10x10;221",
-            "ITEM-0281;Cánula Nasal;220",
-            "ITEM-0282;Cubre Bocas Reutilizable;219",
-            "ITEM-0283;Mascarilla Quirúrgica;218",
-            "ITEM-0284;Cubre Bocas Reutilizable;217",
-            "ITEM-0285;Compresas Estériles;216",
-            "ITEM-0286;Bolsas Biohazard 60L;215",
-            "ITEM-0287;Guantes Desechables Vinilo M;214",
-            "ITEM-0288;Alcohol 70% 1L;213",
-            "ITEM-0289;Gel Ultrasónico 250ml;212",
-            "ITEM-0290;Agujas Hipodérmicas 23G;211",
-            "ITEM-0291;Agujas Hipodérmicas 23G;210",
-            "ITEM-0292;Gasas 10x10;209",
-            "ITEM-0293;Alcohol 70% 1L;208",
-            "ITEM-0294;Bisturí #23;207",
-            "ITEM-0295;Guantes Desechables Vinilo M;206",
-            "ITEM-0296;Cinta Micropore 2.5cm;205",
-            "ITEM-0297;Gasas 10x10;204",
-            "ITEM-0298;Solución Salina 0.9% 1L;203",
-            "ITEM-0299;Catéter 20G;202",
-            "ITEM-0300;Catéter 20G;201",
-            "ITEM-0301;Collar isabelino Talla L;200",
-            "ITEM-0302;Bolsas Biohazard 30L;199",
-            "ITEM-0303;Vendas Elásticas 10cm;198",
-            "ITEM-0304;Cubre Bocas Reutilizable;197",
-            "ITEM-0305;Jeringa 20ml;196",
-            "ITEM-0306;Antiséptico Povidona 10% 120ml;195",
-            "ITEM-0307;Bolsas Biohazard 60L;194",
-            "ITEM-0308;Solución Salina 0.9% 1L;193",
-            "ITEM-0309;Alcohol 70% 500ml;192",
-            "ITEM-0310;Bolsas Biohazard 30L;191",
-            "ITEM-0311;Guantes de Látex Talla M;190",
-            "ITEM-0312;Gasas 10x10;189",
-            "ITEM-0313;Alcohol 70% 1L;188",
-            "ITEM-0314;Agujas Hipodérmicas 23G;187",
-            "ITEM-0315;Collar isabelino Talla L;186",
-            "ITEM-0316;Guante Nitrilo Talla S;185",
-            "ITEM-0317;Clorhexidina 0.05% 1L;184",
-            "ITEM-0318;Hisopos Estériles;183",
-            "ITEM-0319;Solución Salina 0.9% 1L;182",
-            "ITEM-0320;Jeringa 10ml;181",
-            "ITEM-0321;Compresas Estériles;180",
-            "ITEM-0322;Lubricante Oftálmico 10ml;179",
-            "ITEM-0323;Desinfectante de Superficies 1L;178",
-            "ITEM-0324;Catéter 22G;177",
-            "ITEM-0325;Bisturí #23;176",
-            "ITEM-0326;Alcohol 70% 1L;175",
-            "ITEM-0327;Jeringa 10ml;174",
-            "ITEM-0328;Bisturí #11;173",
-            "ITEM-0329;Guante Nitrilo Talla S;172",
-            "ITEM-0330;Bisturí #11;171",
-            "ITEM-0331;Solución Hartmann 1L;170",
-            "ITEM-0332;Bolsas Biohazard 60L;169",
-            "ITEM-0333;Termómetro Digital;168",
-            "ITEM-0334;Cubre Bocas Reutilizable;167",
-            "ITEM-0335;Toallas Desechables;166",
-            "ITEM-0336;Guantes Desechables Vinilo M;165",
-            "ITEM-0337;Guantes de Látex Talla M;164",
-            "ITEM-0338;Cánula Nasal;163",
-            "ITEM-0339;Limpia Pisos 1L;162",
-            "ITEM-0340;Lubricante Oftálmico 10ml;161",
-            "ITEM-0341;Jeringa 5ml;160",
-            "ITEM-0342;Catéter 20G;159",
-            "ITEM-0343;Termómetro Digital;158",
-            "ITEM-0344;Catéter 22G;157",
-            "ITEM-0345;Alcohol 70% 1L;156",
-            "ITEM-0346;Suturas Nylon 3-0;155",
-            "ITEM-0347;Test Glucosa Tiras x50;154",
-            "ITEM-0348;Collar isabelino Talla L;153",
-            "ITEM-0349;Alcohol 70% 1L;152",
-            "ITEM-0350;Test Glucosa Tiras x50;151",
-            "ITEM-0351;Esparadrapo 5cm x 10m;150",
-            "ITEM-0352;Alcohol 70% 1L;149",
-            "ITEM-0353;Alcohol 70% 1L;148",
-            "ITEM-0354;Suturas Nylon 3-0;147",
-            "ITEM-0355;Desinfectante de Superficies 1L;146",
-            "ITEM-0356;Collar isabelino Talla S;145",
-            "ITEM-0357;Collar isabelino Talla M;144",
-            "ITEM-0358;Jeringa 10ml;143",
-            "ITEM-0359;Alcohol 70% 1L;142",
-            "ITEM-0360;Collar isabelino Talla S;141",
-            "ITEM-0361;Clorhexidina 0.05% 1L;140",
-            "ITEM-0362;Jeringa 20ml;139",
-            "ITEM-0363;Alcohol 70% 500ml;138",
-            "ITEM-0364;Suturas Nylon 4-0;137",
-            "ITEM-0365;Alcohol 70% 500ml;136",
-            "ITEM-0366;Gel Ultrasónico 250ml;135",
-            "ITEM-0367;Solución Salina 0.9% 1L;134",
-            "ITEM-0368;Bisturí #23;133",
-            "ITEM-0369;Gasas 5x5;132",
-            "ITEM-0370;Guantes de Látex Talla L;131",
-            "ITEM-0371;Solución Salina 0.9% 1L;130",
-            "ITEM-0372;Suturas Nylon 3-0;129",
-            "ITEM-0373;Suturas Nylon 4-0;128",
-            "ITEM-0374;Guante Nitrilo Talla L;127",
-            "ITEM-0375;Suturas Poliglactina 910 3-0;126",
-            "ITEM-0376;Clorhexidina 0.05% 1L;125",
-            "ITEM-0377;Compresas Estériles;124",
-            "ITEM-0378;Cánula Nasal;123",
-            "ITEM-0379;Suturas Nylon 3-0;122",
-            "ITEM-0380;Guantes de Látex Talla L;121",
-            "ITEM-0381;Collar isabelino Talla M;120",
-            "ITEM-0382;Esparadrapo 5cm x 10m;119",
-            "ITEM-0383;Solución Hartmann 1L;118",
-            "ITEM-0384;Catéter 22G;117",
-            "ITEM-0385;Cánula Nasal;116",
-            "ITEM-0386;Limpia Pisos 1L;115",
-            "ITEM-0387;Esparadrapo 5cm x 10m;114",
-            "ITEM-0388;Solución Salina 0.9% 1L;113",
-            "ITEM-0389;Solución Hartmann 1L;112",
-            "ITEM-0390;Bisturí #23;111",
-            "ITEM-0391;Vendas Elásticas 10cm;110",
-            "ITEM-0392;Cánula Nasal;109",
-            "ITEM-0393;Agujas Hipodérmicas 23G;108",
-            "ITEM-0394;Tijeras de Vendaje;107",
-            "ITEM-0395;Bolsas Biohazard 60L;106",
-            "ITEM-0396;Esparadrapo 5cm x 10m;105",
-            "ITEM-0397;Hisopos Estériles;104",
-            "ITEM-0398;Alcohol 70% 500ml;103",
-            "ITEM-0399;Guante Nitrilo Talla S;102",
-            "ITEM-0400;Bolsas Biohazard 60L;101",
-            "ITEM-0401;Suturas Poliglactina 910 3-0;100",
-            "ITEM-0402;Guantes de Látex Talla L;99",
-            "ITEM-0403;Gasas 10x10;98",
-            "ITEM-0404;Alcohol 70% 500ml;97",
-            "ITEM-0405;Collar isabelino Talla L;96",
-            "ITEM-0406;Catéter 22G;95",
-            "ITEM-0407;Collar isabelino Talla S;94",
-            "ITEM-0408;Solución Hartmann 1L;93",
-            "ITEM-0409;Vendas Elásticas 10cm;92",
-            "ITEM-0410;Mascarilla Quirúrgica;91",
-            "ITEM-0411;Alcohol 70% 500ml;90",
-            "ITEM-0412;Solución Salina 0.9% 1L;89",
-            "ITEM-0413;Bisturí #10;88",
-            "ITEM-0414;Termómetro Digital;87",
-            "ITEM-0415;Jeringa 10ml;86",
-            "ITEM-0416;Bolsas Biohazard 30L;85",
-            "ITEM-0417;Collar isabelino Talla L;84",
-            "ITEM-0418;Limpia Pisos 1L;83",
-            "ITEM-0419;Tijeras de Vendaje;82",
-            "ITEM-0420;Suturas Poliglactina 910 3-0;81",
-            "ITEM-0421;Agujas Hipodérmicas 23G;80",
-            "ITEM-0422;Collar isabelino Talla M;79",
-            "ITEM-0423;Guante Nitrilo Talla S;78",
-            "ITEM-0424;Cánula Nasal;77",
-            "ITEM-0425;Guantes de Látex Talla M;76",
-            "ITEM-0426;Tijeras de Vendaje;75",
-            "ITEM-0427;Cánula Nasal;74",
-            "ITEM-0428;Gasas 10x10;73",
-            "ITEM-0429;Vendas Elásticas 10cm;72",
-            "ITEM-0430;Solución Hartmann 1L;71",
-            "ITEM-0431;Gasas 5x5;70",
-            "ITEM-0432;Gasas 10x10;69",
-            "ITEM-0433;Test Glucosa Tiras x50;68",
-            "ITEM-0434;Guantes de Látex Talla M;67",
-            "ITEM-0435;Jeringa 5ml;66",
-            "ITEM-0436;Antiséptico Povidona 10% 120ml;65",
-            "ITEM-0437;Termómetro Digital;64",
-            "ITEM-0438;Suturas Nylon 4-0;63",
-            "ITEM-0439;Catéter 22G;62",
-            "ITEM-0440;Limpia Pisos 1L;61",
-            "ITEM-0441;Cinta Micropore 2.5cm;60",
-            "ITEM-0442;Catéter 22G;59",
-            "ITEM-0443;Gel Ultrasónico 250ml;58",
-            "ITEM-0444;Agujas Hipodérmicas 21G;57",
-            "ITEM-0445;Solución Hartmann 1L;56",
-            "ITEM-0446;Collar isabelino Talla S;55",
-            "ITEM-0447;Lubricante Oftálmico 10ml;54",
-            "ITEM-0448;Solución Hartmann 1L;53",
-            "ITEM-0449;Alcohol 70% 1L;52",
-            "ITEM-0450;Clorhexidina 0.05% 1L;51",
-            "ITEM-0451;Agujas Hipodérmicas 21G;50",
-            "ITEM-0452;Cubre Bocas Reutilizable;49",
-            "ITEM-0453;Antiséptico Povidona 10% 120ml;48",
-            "ITEM-0454;Guante Nitrilo Talla L;47",
-            "ITEM-0455;Guante Nitrilo Talla S;46",
-            "ITEM-0456;Cinta Micropore 2.5cm;45",
-            "ITEM-0457;Vendas Elásticas 10cm;44",
-            "ITEM-0458;Agujas Hipodérmicas 21G;43",
-            "ITEM-0459;Solución Hartmann 1L;42",
-            "ITEM-0460;Jeringa 10ml;41",
-            "ITEM-0461;Test Glucosa Tiras x50;40",
-            "ITEM-0462;Bolsas Biohazard 30L;39",
-            "ITEM-0463;Guantes de Látex Talla M;38",
-            "ITEM-0464;Limpia Pisos 1L;37",
-            "ITEM-0465;Cubre Bocas Reutilizable;36",
-            "ITEM-0466;Guantes de Látex Talla M;35",
-            "ITEM-0467;Guante Nitrilo Talla S;34",
-            "ITEM-0468;Gasas 5x5;33",
-            "ITEM-0469;Alcohol 70% 500ml;32",
-            "ITEM-0470;Toallas Desechables;31",
-            "ITEM-0471;Jeringa 5ml;30",
-            "ITEM-0472;Collar isabelino Talla L;29",
-            "ITEM-0473;Guante Nitrilo Talla L;28",
-            "ITEM-0474;Bisturí #10;27",
-            "ITEM-0475;Suturas Nylon 3-0;26",
-            "ITEM-0476;Guantes de Látex Talla M;25",
-            "ITEM-0477;Jeringa 5ml;24",
-            "ITEM-0478;Cubre Bocas Reutilizable;23",
-            "ITEM-0479;Vendas Elásticas 10cm;22",
-            "ITEM-0480;Guante Nitrilo Talla L;21",
-            "ITEM-0481;Tijeras de Vendaje;20",
-            "ITEM-0482;Bisturí #10;19",
-            "ITEM-0483;Guante Nitrilo Talla L;18",
-            "ITEM-0484;Mascarilla Quirúrgica;17",
-            "ITEM-0485;Catéter 22G;16",
-            "ITEM-0486;Gel Ultrasónico 250ml;15",
-            "ITEM-0487;Solución Salina 0.9% 1L;14",
-            "ITEM-0488;Cánula Nasal;13",
-            "ITEM-0489;Gasas 10x10;12",
-            "ITEM-0490;Mascarilla Quirúrgica;11",
-            "ITEM-0491;Guantes de Látex Talla M;10",
-            "ITEM-0492;Compresas Estériles;9",
-            "ITEM-0493;Suturas Poliglactina 910 3-0;8",
-            "ITEM-0494;Test Glucosa Tiras x50;7",
-            "ITEM-0495;Jeringa 5ml;6",
-            "ITEM-0496;Solución Salina 0.9% 1L;5",
-            "ITEM-0497;Jeringa 10ml;4",
-            "ITEM-0498;Jeringa 20ml;3",
-            "ITEM-0499;Compresas Estériles;2",
-            "ITEM-0500;Guante Nitrilo Talla M;1",
-    };
+    public static String getRutaActual() {
+        return rutaActual;
+    }
 
- 
+    public static int getRegistrosActuales() {
+        return arrayActual == null ? 0 : arrayActual.length;
+    }
 
-    private static final String[] PACIENTES_500 = new String[] {
-            "PAC-0001;Zambrano;1",
-            "PAC-0002;Ramírez;3",
-            "PAC-0003;Vera;1",
-            "PAC-0004;Castro;1",
-            "PAC-0005;Ramírez;3",
-            "PAC-0006;Serrano;1",
-            "PAC-0007;Carrillo;2",
-            
-            "PAC-0008;Molina;1",
-            "PAC-0009;Naranjo;1",
-            "PAC-0010;Ortega;2",
-            "PAC-0011;Aguirre;1",
-            "PAC-0012;Cordero;1",
-            "PAC-0013;Vega;3",
-            "PAC-0014;Serrano;2",
-            "PAC-0015;Castro;2",
-            "PAC-0016;Carrillo;1",
-            "PAC-0017;Guerrero;1",
-            "PAC-0018;Rojas;2",
-            "PAC-0019;Ramírez;1",
-            "PAC-0020;Ortega;1",
-            "PAC-0021;Ramírez;1",
-            "PAC-0022;Naranjo;2",
-            "PAC-0023;Cedeño;1",
-            "PAC-0024;Molina;2",
-            "PAC-0025;Ramírez;1",
-            "PAC-0026;Vargas;2",
-            "PAC-0027;Vera;2",
-            "PAC-0028;Guerrero;2",
-            "PAC-0029;Torres;3",
-            "PAC-0030;Serrano;1",
-            "PAC-0031;Jaramillo;1",
-            "PAC-0032;Castro;1",
-            "PAC-0033;Suárez;1",
-            "PAC-0034;Torres;1",
-            "PAC-0035;Ortega;1",
-            "PAC-0036;Castro;1",
-            "PAC-0037;Vargas;3",
-            "PAC-0038;García;1",
-            "PAC-0039;Torres;1",
-            "PAC-0040;García;3",
-            "PAC-0041;Molina;3",
-            "PAC-0042;Mendoza;3",
-            "PAC-0043;Ortega;2",
-            "PAC-0044;Zambrano;1",
-            "PAC-0045;Vargas;3",
-            "PAC-0046;Naranjo;1",
-            "PAC-0047;Serrano;2",
-            "PAC-0048;Molina;3",
-            "PAC-0049;Paredes;2",
-            "PAC-0050;Castro;3",
-            "PAC-0051;Naranjo;1",
-            "PAC-0052;Ortega;1",
-            "PAC-0053;Guerrero;2",
-            "PAC-0054;Molina;1",
-            "PAC-0055;Torres;2",
-            "PAC-0056;Guerrero;1",
-            "PAC-0057;Vega;2",
-            "PAC-0058;Espinoza;3",
-            "PAC-0059;Vargas;1",
-            "PAC-0060;Ramírez;1",
-            "PAC-0061;Naranjo;3",
-            "PAC-0062;Cordero;2",
-            "PAC-0063;Ramírez;3",
-            "PAC-0064;Benítez;2",
-            "PAC-0065;Benítez;2",
-            "PAC-0066;García;1",
-            "PAC-0067;Torres;2",
-            "PAC-0068;Jaramillo;1",
-            "PAC-0069;García;1",
-            "PAC-0070;Ortega;3",
-            "PAC-0071;Guerrero;3",
-            "PAC-0072;Benítez;2",
-            "PAC-0073;Castro;2",
-            "PAC-0074;Castro;2",
-            "PAC-0075;Serrano;2",
-            "PAC-0076;Cedeño;2",
-            "PAC-0077;Naranjo;3",
-            "PAC-0078;Molina;3",
-            "PAC-0079;Vargas;1",
-            "PAC-0080;Sánchez;1",
-            "PAC-0081;Molina;1",
-            "PAC-0082;Carrillo;1",
-            "PAC-0083;Vargas;1",
-            "PAC-0084;Ramírez;2",
-            "PAC-0085;Cedeño;2",
-            "PAC-0086;Ramírez;3",
-            "PAC-0087;Castro;3",
-            "PAC-0088;Benítez;2",
-            "PAC-0089;Vera;1",
-            "PAC-0090;Torres;1",
-            "PAC-0091;Serrano;2",
-            "PAC-0092;Guerrero;2",
-            "PAC-0093;Naranjo;2",
-            "PAC-0094;Cedeño;1",
-            "PAC-0095;García;1",
-            "PAC-0096;Guerrero;1",
-            "PAC-0097;Guerrero;2",
-            "PAC-0098;Guerrero;1",
-            "PAC-0099;Salazar;1",
-            "PAC-0100;Vargas;1",
-            "PAC-0101;García;3",
-            "PAC-0102;Espinoza;2",
-            "PAC-0103;Naranjo;1",
-            "PAC-0104;Aguirre;2",
-            "PAC-0105;Benítez;1",
-            "PAC-0106;Serrano;3",
-            "PAC-0107;Paredes;1",
-            "PAC-0108;Ortega;2",
-            "PAC-0109;Chávez;3",
-            "PAC-0110;Torres;2",
-            "PAC-0111;Pineda;2",
-            "PAC-0112;Vera;1",
-            "PAC-0113;Castro;1",
-            "PAC-0114;Ramírez;1",
-            "PAC-0115;Carrillo;2",
-            "PAC-0116;Ortega;2",
-            "PAC-0117;Castro;1",
-            "PAC-0118;Ortega;3",
-            "PAC-0119;Navarro;1",
-            "PAC-0120;Ortega;1",
-            "PAC-0121;Molina;1",
-            "PAC-0122;Ortega;2",
-            "PAC-0123;Guerrero;1",
-            "PAC-0124;Chávez;2",
-            "PAC-0125;Torres;2",
-            "PAC-0126;García;3",
-            "PAC-0127;Jaramillo;2",
-            "PAC-0128;Espinoza;1",
-            "PAC-0129;Espinoza;2",
-            "PAC-0130;Molina;1",
-            "PAC-0131;Cedeño;3",
-            "PAC-0132;Carrillo;1",
-            "PAC-0133;Benítez;2",
-            "PAC-0134;Serrano;3",
-            "PAC-0135;García;3",
-            "PAC-0136;Vega;3",
-            "PAC-0137;Cedeño;1",
-            "PAC-0138;Cordero;3",
-            "PAC-0139;Ramírez;1",
-            "PAC-0140;Naranjo;1",
-            "PAC-0141;Molina;2",
-            "PAC-0142;Aguirre;1",
-            "PAC-0143;Benítez;1",
-            "PAC-0144;Vera;2",
-            "PAC-0145;Naranjo;1",
-            "PAC-0146;Pineda;2",
-            "PAC-0147;Cedeño;1",
-            "PAC-0148;Vega;2",
-            "PAC-0149;Naranjo;1",
-            "PAC-0150;Guerrero;1",
-            "PAC-0151;Salazar;2",
-            "PAC-0152;Cordero;1",
-            "PAC-0153;Cordero;1",
-            "PAC-0154;Naranjo;2",
-            "PAC-0155;Guerrero;2",
-            "PAC-0156;Ramírez;2",
-            "PAC-0157;García;2",
-            "PAC-0158;Rojas;3",
-            "PAC-0159;Cordero;3",
-            "PAC-0160;Salazar;1",
-            "PAC-0161;Molina;1",
-            "PAC-0162;Torres;1",
-            "PAC-0163;Benítez;3",
-            "PAC-0164;Serrano;1",
-            "PAC-0165;Guerrero;1",
-            "PAC-0166;García;2",
-            "PAC-0167;Cordero;2",
-            "PAC-0168;Aguirre;1",
-            "PAC-0169;Torres;2",
-            "PAC-0170;Guerrero;1",
-            "PAC-0171;Castro;2",
-            "PAC-0172;Castro;3",
-            "PAC-0173;Guerrero;2",
-            "PAC-0174;Vera;2",
-            "PAC-0175;Naranjo;2",
-            "PAC-0176;Pineda;1",
-            "PAC-0177;Serrano;1",
-            "PAC-0178;Jaramillo;3",
-            "PAC-0179;Benítez;2",
-            "PAC-0180;Pineda;1",
-            "PAC-0181;Ramírez;1",
-            "PAC-0182;Chávez;3",
-            "PAC-0183;Guerrero;1",
-            "PAC-0184;Ramírez;2",
-            "PAC-0185;García;3",
-            "PAC-0186;Sánchez;1",
-            "PAC-0187;Vargas;1",
-            "PAC-0188;Ortega;1",
-            "PAC-0189;Vargas;2",
-            "PAC-0190;Salazar;1",
-            "PAC-0191;Ortega;2",
-            "PAC-0192;Torres;2",
-            "PAC-0193;Ramírez;1",
-            "PAC-0194;Molina;1",
-            "PAC-0195;Naranjo;1",
-            "PAC-0196;García;1",
-            "PAC-0197;Pineda;2",
-            "PAC-0198;Castro;2",
-            "PAC-0199;Vega;2",
-            "PAC-0200;Naranjo;3",
-            "PAC-0201;Espinoza;1",
-            "PAC-0202;Suárez;1",
-            "PAC-0203;Torres;1",
-            "PAC-0204;Molina;1",
-            "PAC-0205;Espinoza;1",
-            "PAC-0206;Molina;1",
-            "PAC-0207;Aguirre;1",
-            "PAC-0208;Ramírez;1",
-            "PAC-0209;Mendoza;3",
-            "PAC-0210;Ramírez;2",
-            "PAC-0211;Salazar;1",
-            "PAC-0212;García;1",
-            "PAC-0213;Zambrano;2",
-            "PAC-0214;Vera;1",
-            "PAC-0215;Guerrero;1",
-            "PAC-0216;García;3",
-            "PAC-0217;Ramírez;1",
-            "PAC-0218;Pineda;2",
-            "PAC-0219;Benítez;2",
-            "PAC-0220;Naranjo;1",
-            "PAC-0221;Ortega;3",
-            "PAC-0222;Ortega;2",
-            "PAC-0223;Molina;1",
-            "PAC-0224;Benítez;2",
-            "PAC-0225;Castro;2",
-            "PAC-0226;García;1",
-            "PAC-0227;Ortega;1",
-            "PAC-0228;Vera;1",
-            "PAC-0229;García;3",
-            "PAC-0230;Naranjo;3",
-            "PAC-0231;Ramírez;1",
-            "PAC-0232;Cordero;2",
-            "PAC-0233;Serrano;3",
-            "PAC-0234;Ortega;1",
-            "PAC-0235;Guerrero;1",
-            "PAC-0236;Salazar;1",
-            "PAC-0237;Cedeño;3",
-            "PAC-0238;Cedeño;2",
-            "PAC-0239;Chávez;3",
-            "PAC-0240;Naranjo;1",
-            "PAC-0241;Guerrero;3",
-            "PAC-0242;Ramírez;2",
-            "PAC-0243;Molina;2",
-            "PAC-0244;Castro;1",
-            "PAC-0245;Vargas;1",
-            "PAC-0246;Ortega;1",
-            "PAC-0247;Castro;1",
-            "PAC-0248;Suárez;1",
-            "PAC-0249;Cordero;1",
-            "PAC-0250;Vera;1",
-            "PAC-0251;Vera;1",
-            "PAC-0252;Sánchez;2",
-            "PAC-0253;Cordero;3",
-            "PAC-0254;Vargas;1",
-            "PAC-0255;Ramírez;1",
-            "PAC-0256;Ramírez;1",
-            "PAC-0257;Benítez;1",
-            "PAC-0258;Molina;1",
-            "PAC-0259;Pineda;2",
-            "PAC-0260;Molina;3",
-            "PAC-0261;Guerrero;2",
-            "PAC-0262;Aguirre;2",
-            "PAC-0263;Molina;2",
-            "PAC-0264;Jaramillo;1",
-            "PAC-0265;Cedeño;1",
-            "PAC-0266;Carrillo;1",
-            "PAC-0267;Pineda;2",
-            "PAC-0268;Mendoza;3",
-            "PAC-0269;Chávez;1",
-            "PAC-0270;García;2",
-            "PAC-0271;Castro;3",
-            "PAC-0272;Cedeño;2",
-            "PAC-0273;Guerrero;3",
-            "PAC-0274;Vera;3",
-            "PAC-0275;Castro;2",
-            "PAC-0276;Ortega;3",
-            "PAC-0277;Salazar;1",
-            "PAC-0278;Cordero;3",
-            "PAC-0279;Torres;2",
-            "PAC-0280;García;1",
-            "PAC-0281;Jaramillo;3",
-            "PAC-0282;Castro;3",
-            "PAC-0283;Cedeño;2",
-            "PAC-0284;Salazar;1",
-            "PAC-0285;Cordero;2",
-            "PAC-0286;Guerrero;1",
-            "PAC-0287;García;1",
-            "PAC-0288;Carrillo;2",
-            "PAC-0289;Aguirre;3",
-            "PAC-0290;Naranjo;2",
-            "PAC-0291;Pineda;2",
-            "PAC-0292;Gómez;1",
-            "PAC-0293;Carrillo;2",
-            "PAC-0294;Naranjo;3",
-            "PAC-0295;Guerrero;1",
-            "PAC-0296;Carrillo;3",
-            "PAC-0297;Zambrano;2",
-            "PAC-0298;Cedeño;1",
-            "PAC-0299;Guerrero;3",
-            "PAC-0300;Ortega;1",
-            "PAC-0301;Vera;1",
-            "PAC-0302;Ramírez;1",
-            "PAC-0303;Naranjo;2",
-            "PAC-0304;Vargas;1",
-            "PAC-0305;Vargas;2",
-            "PAC-0306;Navarro;2",
-            "PAC-0307;Molina;3",
-            "PAC-0308;Rojas;2",
-            "PAC-0309;Jaramillo;2",
-            "PAC-0310;Naranjo;1",
-            "PAC-0311;Vega;3",
-            "PAC-0312;Guerrero;1",
-            "PAC-0313;Benítez;1",
-            "PAC-0314;Cedeño;3",
-            "PAC-0315;Pineda;2",
-            "PAC-0316;García;2",
-            "PAC-0317;Naranjo;1",
-            "PAC-0318;Vargas;1",
-            "PAC-0319;Serrano;3",
-            "PAC-0320;Aguirre;2",
-            "PAC-0321;Pineda;1",
-            "PAC-0322;Pineda;2",
-            "PAC-0323;Benítez;2",
-            "PAC-0324;Espinoza;2",
-            "PAC-0325;Guerrero;3",
-            "PAC-0326;Espinoza;2",
-            "PAC-0327;Ramírez;1",
-            "PAC-0328;Zambrano;1",
-            "PAC-0329;Pineda;2",
-            "PAC-0330;Navarro;1",
-            "PAC-0331;Vera;2",
-            "PAC-0332;Ortega;3",
-            "PAC-0333;García;1",
-            "PAC-0334;Molina;1",
-            "PAC-0335;Guerrero;2",
-            "PAC-0336;Guerrero;1",
-            "PAC-0337;Ortega;1",
-            "PAC-0338;Ortega;3",
-            "PAC-0339;Ortega;3",
-            "PAC-0340;Torres;1",
-            "PAC-0341;Jaramillo;2",
-            "PAC-0342;Cedeño;2",
-            "PAC-0343;Serrano;2",
-            "PAC-0344;Torres;1",
-            "PAC-0345;Jaramillo;2",
-            "PAC-0346;Benítez;3",
-            "PAC-0347;Cedeño;2",
-            "PAC-0348;Castro;2",
-            "PAC-0349;Guerrero;1",
-            "PAC-0350;Castro;2",
-            "PAC-0351;Jaramillo;2",
-            "PAC-0352;Serrano;2",
-            "PAC-0353;Castro;2",
-            "PAC-0354;Castro;1",
-            "PAC-0355;Carrillo;2",
-            "PAC-0356;Ramírez;2",
-            "PAC-0357;Ramírez;3",
-            "PAC-0358;Gómez;2",
-            "PAC-0359;Naranjo;2",
-            "PAC-0360;García;2",
-            "PAC-0361;Vargas;1",
-            "PAC-0362;Espinoza;2",
-            "PAC-0363;Salazar;3",
-            "PAC-0364;Ramírez;1",
-            "PAC-0365;Sánchez;2",
-            "PAC-0366;Torres;2",
-            "PAC-0367;Ramírez;1",
-            "PAC-0368;Ramírez;2",
-            "PAC-0369;Naranjo;1",
-            "PAC-0370;Vargas;1",
-            "PAC-0371;Ramírez;2",
-            "PAC-0372;Vera;2",
-            "PAC-0373;Cedeño;1",
-            "PAC-0374;Espinoza;1",
-            "PAC-0375;Serrano;1",
-            "PAC-0376;Molina;1",
-            "PAC-0377;Vega;1",
-            "PAC-0378;Vega;1",
-            "PAC-0379;Ramírez;1",
-            "PAC-0380;Vera;1",
-            "PAC-0381;Serrano;1",
-            "PAC-0382;Guerrero;1",
-            "PAC-0383;Espinoza;3",
-            "PAC-0384;Molina;2",
-            "PAC-0385;Torres;2",
-            "PAC-0386;Rojas;1",
-            "PAC-0387;Torres;1",
-            "PAC-0388;Aguirre;2",
-            "PAC-0389;Molina;1",
-            "PAC-0390;Ortega;1",
-            "PAC-0391;Benítez;1",
-            "PAC-0392;Ortega;2",
-            "PAC-0393;Gómez;2",
-            "PAC-0394;Espinoza;3",
-            "PAC-0395;Vera;1",
-            "PAC-0396;Carrillo;3",
-            "PAC-0397;Navarro;1",
-            "PAC-0398;Ramírez;3",
-            "PAC-0399;Castro;3",
-            "PAC-0400;Pineda;1",
-            "PAC-0401;Salazar;1",
-            "PAC-0402;Molina;2",
-            "PAC-0403;Benítez;3",
-            "PAC-0404;Torres;1",
-            "PAC-0405;Benítez;3",
-            "PAC-0406;Ramírez;1",
-            "PAC-0407;Jaramillo;2",
-            "PAC-0408;Ramírez;2",
-            "PAC-0409;García;3",
-            "PAC-0410;Vargas;3",
-            "PAC-0411;Ortega;2",
-            "PAC-0412;Cedeño;3",
-            "PAC-0413;Pineda;3",
-            "PAC-0414;Molina;2",
-            "PAC-0415;Vargas;2",
-            "PAC-0416;Serrano;2",
-            "PAC-0417;Carrillo;1",
-            "PAC-0418;Naranjo;1",
-            "PAC-0419;Naranjo;1",
-            "PAC-0420;Aguirre;1",
-            "PAC-0421;Serrano;2",
-            "PAC-0422;Vargas;3",
-            "PAC-0423;Castro;1",
-            "PAC-0424;Ramírez;2",
-            "PAC-0425;Naranjo;1",
-            "PAC-0426;Salazar;1",
-            "PAC-0427;Vera;1",
-            "PAC-0428;Ramírez;1",
-            "PAC-0429;Pineda;3",
-            "PAC-0430;Vera;2",
-            "PAC-0431;Naranjo;2",
-            "PAC-0432;Molina;1",
-            "PAC-0433;Guerrero;3",
-            "PAC-0434;Salazar;2",
-            "PAC-0435;Cordero;1",
-            "PAC-0436;Paredes;2",
-            "PAC-0437;Sánchez;3",
-            "PAC-0438;Salazar;2",
-            "PAC-0439;Cedeño;1",
-            "PAC-0440;Torres;1",
-            "PAC-0441;Cordero;3",
-            "PAC-0442;Naranjo;1",
-            "PAC-0443;Suárez;2",
-            "PAC-0444;Torres;2",
-            "PAC-0445;Espinoza;2",
-            "PAC-0446;Molina;2",
-            "PAC-0447;Espinoza;1",
-            "PAC-0448;Vera;3",
-            "PAC-0449;Vargas;1",
-            "PAC-0450;Ortega;1",
-            "PAC-0451;Ortega;1",
-            "PAC-0452;Molina;1",
-            "PAC-0453;Vera;3",
-            "PAC-0454;Vargas;3",
-            "PAC-0455;Ramírez;1",
-            "PAC-0456;Torres;3",
-            "PAC-0457;Cordero;1",
-            "PAC-0458;Carrillo;2",
-            "PAC-0459;Pineda;1",
-            "PAC-0460;Cedeño;1",
-            "PAC-0461;Torres;1",
-            "PAC-0462;García;1",
-            "PAC-0463;Castro;1",
-            "PAC-0464;Vargas;1",
-            "PAC-0465;Vera;1",
-            "PAC-0466;García;2",
-            "PAC-0467;Torres;3",
-            "PAC-0468;García;3",
-            "PAC-0469;Salazar;1",
-            "PAC-0470;Naranjo;2",
-            "PAC-0471;García;2",
-            "PAC-0472;Cordero;2",
-            "PAC-0473;Ramírez;1",
-            "PAC-0474;García;1",
-            "PAC-0475;Cordero;1",
-            "PAC-0476;Castro;2",
-            "PAC-0477;Salazar;1",
-            "PAC-0478;Jaramillo;3",
-            "PAC-0479;Mendoza;1",
-            "PAC-0480;Ortega;1",
-            "PAC-0481;Salazar;1",
-            "PAC-0482;Guerrero;1",
-            "PAC-0483;Vera;2",
-            "PAC-0484;Jaramillo;2",
-            "PAC-0485;Pineda;2",
-            "PAC-0486;Castro;2",
-            "PAC-0487;Castro;2",
-            "PAC-0488;Pineda;1",
-            "PAC-0489;Carrillo;2",
-            "PAC-0490;Ortega;2",
-            "PAC-0491;Serrano;1",
-            "PAC-0492;Vargas;3",
-            "PAC-0493;Cedeño;1",
-            "PAC-0494;Navarro;1",
-            "PAC-0495;Ramírez;3",
-            "PAC-0496;Guerrero;1",
-            "PAC-0497;Guerrero;1",
-            "PAC-0498;Espinoza;1",
-            "PAC-0499;Guerrero;1",
-            "PAC-0500;Salazar;2"
-    };
+    // ============================================================
+    // LIMPIAR ESTADO
+    // ============================================================
 
-    // =============================
-    // MÉTODOS PARA CARGAR DATOS
-    // =============================
+    public static void limpiar() {
+        tipoActual = DatasetType.NONE;
+        listaActual = null;
+        arrayActual = null;
+        sllActual = null;
+        rutaActual = null;
+    }
 
-    /**
-     * Carga un dataset embebido por su tipo.
-     */
-    public static void cargar(DatasetType t) {
+    // ============================================================
+    // LISTAR DATASETS OFICIALES
+    // ============================================================
 
-        tipo = t;
+    public static List<File> listarDatasetsOficiales() {
 
-        String[] origen;
+        System.out.println(" DATASET_DIR está apuntando a: " + DATASET_DIR);
 
-        switch (t) {
-            case CITAS_100:
-                origen = CITAS_100;
-                break;
-            case CITAS_100_CASI:
-                origen = CITAS_100_CASI;
-                break;
-            case INVENTARIO_500_INVERSO:
-                origen = INVENTARIO_500_INVERSO;
-                break;
-            case PACIENTES_500:
-                origen = PACIENTES_500;
-                break;
+        File dir = new File(DATASET_DIR);
+
+        if (!dir.exists()) {
+            System.out.println(" Directorio no existe: " + DATASET_DIR);
+            return Collections.emptyList();
+        }
+
+        if (!dir.isDirectory()) {
+            System.out.println(" No es un directorio: " + DATASET_DIR);
+            return Collections.emptyList();
+        }
+
+        File[] archivos = dir.listFiles((d, n) -> n.toLowerCase().endsWith(".csv"));
+
+        if (archivos == null || archivos.length == 0) {
+            System.out.println(" No hay archivos CSV en: " + DATASET_DIR);
+            return Collections.emptyList();
+        }
+
+        Arrays.sort(archivos);
+        return Arrays.asList(archivos);
+    }
+
+    // ============================================================
+    // CARGA DESDE DATASETS OFICIALES
+    // ============================================================
+
+    public static void cargarDatasetOficial(File csv) {
+
+        limpiar();
+
+        rutaActual = csv.getAbsolutePath();
+
+        Map<String, Object> datos = CsvLoader.cargarCsv(rutaActual);
+
+        asignarDataset(datos);
+
+        int registros = getRegistrosActuales();
+
+        HistoryManager.log(
+                "LOAD",
+                "Dataset oficial",
+                "archivo=" + csv.getName(),
+                registros,
+                0);
+    }
+
+    // ============================================================
+    // CARGA MANUAL DE CSV
+    // ============================================================
+
+    public static void cargarDatasetManual(String ruta) {
+
+        limpiar();
+
+        rutaActual = ruta;
+
+        Map<String, Object> datos = CsvLoader.cargarCsv(rutaActual);
+
+        asignarDataset(datos);
+
+        int registros = getRegistrosActuales();
+
+        HistoryManager.log(
+                "LOAD",
+                "Carga manual CSV",
+                "ruta=" + ruta,
+                registros,
+                0);
+    }
+
+    // ============================================================
+    // RECIBE EL MAPA DEL CSV Y ACTUALIZA EL ESTADO GLOBAL
+    // ============================================================
+
+    @SuppressWarnings("unchecked")
+    private static void asignarDataset(Map<String, Object> datos) {
+
+        if (datos == null || datos.isEmpty()) {
+            tipoActual = DatasetType.NONE;
+            return;
+        }
+
+        if (datos.containsKey("citas")) {
+
+            tipoActual = DatasetType.CITAS;
+            listaActual = (List<Cita>) datos.get("citas");
+            arrayActual = listaActual.toArray(new Cita[0]);
+
+            SinglyLinkedList<Cita> sll = new SinglyLinkedList<>();
+            sll.insertarDesdeLista((List<Cita>) listaActual);
+            sllActual = sll;
+
+        } else if (datos.containsKey("pacientes")) {
+
+            tipoActual = DatasetType.PACIENTES;
+            listaActual = (List<Paciente>) datos.get("pacientes");
+            arrayActual = listaActual.toArray(new Paciente[0]);
+
+            SinglyLinkedList<Paciente> sll = new SinglyLinkedList<>();
+            sll.insertarDesdeLista((List<Paciente>) listaActual);
+            sllActual = sll;
+
+        } else if (datos.containsKey("inventario")) {
+
+            tipoActual = DatasetType.INVENTARIO;
+            listaActual = (List<InventarioItem>) datos.get("inventario");
+            arrayActual = listaActual.toArray(new InventarioItem[0]);
+
+            SinglyLinkedList<InventarioItem> sll = new SinglyLinkedList<>();
+            sll.insertarDesdeLista((List<InventarioItem>) listaActual);
+            sllActual = sll;
+
+        } else {
+            tipoActual = DatasetType.NONE;
+        }
+    }
+
+    public static Object buscarPorId(String id) {
+        if (!hayDataset())
+            return null;
+
+        String buscado = id.trim().toUpperCase();
+
+        Object[] arr = arrayActual;
+
+        switch (tipoActual) {
+            case CITAS:
+                return buscarLinealPorId(arr, buscado);
+            case PACIENTES:
+                return buscarLinealPorId(arr, buscado);
+            case INVENTARIO:
+                return buscarLinealPorId(arr, buscado);
             default:
-                origen = new String[0];
+                return null;
         }
-
-        // Convertir a Object[]
-        datasetArray = Arrays.copyOf(origen, origen.length);
-
-        // Crear la SLL equivalente
-        datasetSLL = new SinglyLinkedList<>();
-        for (String s : origen) {
-            datasetSLL.add(s);
-        }
-
-
-
-
-
-
-        
     }
+
+
+
+
+    private static Object buscarLinealPorId(Object[] arr, String buscado) {
+    for (Object o : arr) {
+        String idActual = "";
+
+        if (o instanceof Cita c) idActual = c.getId();
+        if (o instanceof Paciente p) idActual = p.getId();
+        if (o instanceof InventarioItem it) idActual = it.getId();
+
+        if (idActual != null && idActual.equalsIgnoreCase(buscado))
+            return o;
+    }
+    return null;
+}
+
+
+
+// ============================================================
+// GETTERS TIPADOS (para facilitar uso en MenuPrincipal)
+// ============================================================
+
+public static Cita[] getCitasArray() {
+    if (tipoActual != DatasetType.CITAS) return null;
+    return Arrays.copyOf(arrayActual, arrayActual.length, Cita[].class);
+}
+
+public static Paciente[] getPacientesArray() {
+    if (tipoActual != DatasetType.PACIENTES) return null;
+    return Arrays.copyOf(arrayActual, arrayActual.length, Paciente[].class);
+}
+
+public static InventarioItem[] getInventarioArray() {
+    if (tipoActual != DatasetType.INVENTARIO) return null;
+    return Arrays.copyOf(arrayActual, arrayActual.length, InventarioItem[].class);
+}
+
 }
