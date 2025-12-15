@@ -1,0 +1,11 @@
+# IDEs
+.idea/
+
+# Compilación
+out/
+
+# Reportes generados
+miniproyecto/resources/reports/*.csv
+
+# Recursos temporales
+resources/
