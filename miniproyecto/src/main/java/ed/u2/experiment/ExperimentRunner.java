@@ -143,10 +143,10 @@ public class ExperimentRunner {
             OperationStats statsInsercion) {
 
         System.out.println(ANSI.CYAN_BOLD + "\n" +
-                "╔══════════════════════════════════════════════════════════╗");
-        System.out.println("║        COMPARACIÓN DE ALGORITMOS DE ORDENACIÓN      ║");
-        System.out.println("╠══════════════════════════════════════════════════════╣");
-        System.out.printf("║ Dataset: %-43s ║\n", nombreDataset);
+                "╔════════════════════════════════════════════════════════╗");
+        System.out.println("║        COMPARACIÓN DE ALGORITMOS DE ORDENACIÓN         ║");
+        System.out.println("╠════════════════════════════════════════════════════════╣");
+        System.out.printf("║ Dataset: %-43s   ║\n", nombreDataset);
         System.out.println("╠══════════════╦═══════════════╦══════════╦══════════════╣");
         System.out.println("║ Algoritmo    ║ Comparaciones ║ Swaps    ║ Tiempo (ns)  ║");
         System.out.println("╠══════════════╬═══════════════╬══════════╬══════════════╣");

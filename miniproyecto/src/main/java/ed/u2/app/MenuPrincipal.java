@@ -25,7 +25,7 @@
                 opcion = ConsoleUtils.leerLinea("Seleccione una opción: ");
                 procesarOpcion(opcion);
 
-            } while (!opcion.equals("9"));
+            } while (!opcion.equals("8"));
         }
 
         private void mostrarMenu() {
@@ -39,8 +39,7 @@
             System.out.println("5. Ejecutar búsquedas");
             System.out.println("6. Ver historial de búsquedas");
             System.out.println("7. Ver estadísticas visuales");
-            System.out.println("8 Exportar estadísticas / resultados");
-            System.out.println("9. Salir\n");
+            System.out.println("8. Salir\n");
         }
 
         private void procesarOpcion(String opcion) {
@@ -54,7 +53,7 @@
                 case "3":
                     ordenarRegistros();
                     break;
-                case "4":  // ← NUEVO: Comparar algoritmos
+                case "4":
                     compararAlgoritmos();
                     break;
                 case "5":
@@ -68,9 +67,6 @@
                     mostrarMatrizDecision();
                     break;
                 case "8":
-                    exportarResultadosCompletos();
-                    break;
-                case "9":
                     System.out.println(ANSI.GREEN_BOLD + "Has salido correctamente" + ANSI.RESET);
                     System.out.println(ANSI.GREEN + "Esperamos que vuelvas pronto." + ANSI.RESET);
                     break;
@@ -106,12 +102,12 @@
         private void mostrarMatrizDecision() {
             System.out.println(ANSI.CYAN_BOLD +
                     "\n╔══════════════════════════════════════════════════════════════════════╗");
-            System.out.println("║                   MATRIZ DE DECISIÓN: SI... ENTONCES...                ║");
+            System.out.println("║                   MATRIZ DE DECISIÓN: SI... ENTONCES...              ║");
             System.out.println("╠══════════════════════════════════════════════════════════════════════╣");
             System.out.println("║ SI la situación es...                    ║ ENTONCES usar...          ║");
             System.out.println("╠══════════════════════════════════════════╬═══════════════════════════╣");
             System.out.println("║ Dataset pequeño (<100 elementos)         ║ Inserción (simple)        ║");
-            System.out.println("║ Dataset casi ordenado                   ║ Inserción (Óptimo O(n))    ║");
+            System.out.println("║ Dataset casi ordenado                    ║ Inserción (Óptimo O(n))   ║");
             System.out.println("║ Dataset totalmente inverso               ║ Selección (swaps O(n))    ║");
             System.out.println("║ Minimizar movimientos de memoria         ║ Selección (swaps mínimos) ║");
             System.out.println("║ No importan swaps, quiero simplicidad    ║ Burbuja (didáctica)       ║");
@@ -127,28 +123,6 @@
             System.out.println("Para listas enlazadas: Secuencial (primera, última, findAll)");
 
             ConsoleUtils.pausar();
-        }
-
-        private void exportarResultadosCompletos() {
-            if (!DatasetManager.hayDataset()) {
-                System.out.println(ANSI.RED_BOLD + " No hay dataset cargado." + ANSI.RESET);
-                return;
-            }
-
-            System.out.println(ANSI.CYAN_BOLD + "\n=== EXPORTAR RESULTADOS ===" + ANSI.RESET);
-            System.out.println("1. Exportar historial completo");
-            System.out.println("2. Exportar estadísticas de comparación");
-            System.out.println("3. Volver");
-
-            String op = ConsoleUtils.leerLinea("Opción: ");
-
-            switch (op) {
-                case "1" -> exportarHistorial();
-                case "2" -> { return; }
-                default -> System.out.println(ANSI.RED + "Opción inválida" + ANSI.RESET);
-            }
-
-            ConsoleUtils.pausar("");
         }
 
         private void exportarHistorial() {

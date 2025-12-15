@@ -1,2 +1,7 @@
 "timestamp","categoria","accion","detalles","resultados","duracion_ns","nota"
 "2025-12-15 10:09:56","LOAD","Dataset oficial","archivo=citas_100.csv",100,0,""
+"2025-12-15 10:25:16","LOAD","Dataset oficial","archivo=citas_100.csv",100,0,""
+"2025-12-15 10:36:33","LOAD","Dataset oficial","archivo=citas_100.csv",100,0,""
+"2025-12-15 10:45:59","LOAD","Dataset oficial","archivo=citas_100.csv",100,0,""
+"2025-12-15 10:49:07","LOAD","Dataset oficial","archivo=citas_100.csv",100,0,""
+"2025-12-15 10:49:41","LOAD","Dataset oficial","archivo=citas_100.csv",100,0,""
