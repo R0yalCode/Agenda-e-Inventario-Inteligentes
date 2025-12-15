@@ -45,13 +45,13 @@ static {
     File base = new File(System.getProperty("user.dir"));
 
     // Carpeta de datasets relativa al proyecto
-    File probable = new File(base, "resources/datasets");
+    File probable = new File(base, "miniproyecto/resources/datasets");
 
     if (probable.exists() && probable.isDirectory()) {
         DATASET_DIR = probable.getAbsolutePath();
     } else {
         System.out.println("No se encontró 'resources/datasets'. Creando carpeta…");
-        probable.mkdirs(); 
+        probable.mkdirs();
         DATASET_DIR = probable.getAbsolutePath();
     }
 }

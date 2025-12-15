@@ -223,6 +223,37 @@ public class SearchEngine {
         }
         return null;
     }
+    // ============================================================
+// VALIDACIÓN PARA BÚSQUEDA BINARIA
+// ============================================================
+
+    /**
+     * Verifica si un array está ordenado por ID (requisito para binaria).
+     */
+    public static boolean estaOrdenadoPorId(Object[] arr) {
+        if (arr == null || arr.length <= 1) return true;
+
+        for (int i = 0; i < arr.length - 1; i++) {
+            String idActual = getId(arr[i]).toUpperCase();
+            String idSiguiente = getId(arr[i + 1]).toUpperCase();
+
+            if (idActual.compareTo(idSiguiente) > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Versión sobrecargada del binarySearch que valida antes.
+     */
+    public static int binarySearchValidado(Object[] arr, String id) {
+        if (!estaOrdenadoPorId(arr)) {
+            throw new IllegalStateException("Array no está ordenado por ID. "
+                    + "Búsqueda binaria requiere ordenación previa.");
+        }
+        return binarySearch(arr, id);
+    }
 
     public static Object sllLast(String atributo, String valor) {
 

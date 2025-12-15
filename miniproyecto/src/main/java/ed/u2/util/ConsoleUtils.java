@@ -48,6 +48,7 @@ public class ConsoleUtils {
         System.out.println(ANSI.YELLOW + mensaje + ANSI.RESET);
         System.out.println(ANSI.CYAN + "Presione ENTER para continuar..." + ANSI.RESET);
         sc.nextLine();
+
     }
 
     /**

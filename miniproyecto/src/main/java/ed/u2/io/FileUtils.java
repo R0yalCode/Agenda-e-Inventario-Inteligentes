@@ -1,5 +1,7 @@
 package ed.u2.io;
 
+import ed.u2.util.ANSI;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -76,8 +78,18 @@ public class FileUtils {
         return null;
     }
 
-    public static void crearDirectorioSiNoExiste(String string) {
-        throw new UnsupportedOperationException("Unimplemented method 'crearDirectorioSiNoExiste'");
+    public static void crearDirectorioSiNoExiste(String ruta) {
+        if (ruta == null || ruta.trim().isEmpty()) return;
 
+        try {
+            java.nio.file.Path path = java.nio.file.Paths.get(ruta);
+            java.nio.file.Files.createDirectories(path);
+
+            System.out.println(ANSI.GREEN + "Directorio creado/verificado: " +
+                    path.toAbsolutePath() + ANSI.RESET);
+        } catch (Exception e) {
+            System.out.println(ANSI.RED + "Error creando directorio '" + ruta +
+                    "': " + e.getMessage() + ANSI.RESET);
+        }
     }
 }

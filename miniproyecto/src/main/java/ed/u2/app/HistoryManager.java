@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class HistoryManager {
 
     // ---------- Config ----------
-    private static final String DEFAULT_HISTORY_DIR = "resources/history";
+    private static final String DEFAULT_HISTORY_DIR = "miniproyecto/resources/history";
     private static final String DEFAULT_HISTORY_FILE = "history.csv";
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
