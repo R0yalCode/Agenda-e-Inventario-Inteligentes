@@ -6,7 +6,15 @@ import ed.u2.stats.OperationStats;
 import ed.u2.util.ANSI;
 import ed.u2.util.ConsoleUtils;
 
+import java.io.BufferedWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+
+import static java.nio.file.Files.newBufferedWriter;
 
 /**
  * Compara los 3 algoritmos de ordenación en diferentes datasets.
@@ -98,6 +106,7 @@ public class SortingComparator {
         System.out.println("\nEjecuta:");
         System.out.println("1. Cargar 'citas_100_casi_ordenadas.csv' y usar Opción 3 -> Comparar");
         System.out.println("2. Cargar 'inventario_500_inverso.csv' y usar Opción 3 -> Comparar");
+
     }
 
     // ============================================================
@@ -149,17 +158,17 @@ public class SortingComparator {
             OperationStats b, OperationStats s, OperationStats i) {
 
         try {
-            java.nio.file.Path dir = java.nio.file.Paths.get("miniproyecto/resources/reports");
-            java.nio.file.Files.createDirectories(dir);
+            Path dir = Paths.get("miniproyecto/resources/reports");
+            Files.createDirectories(dir);
 
             String nombreArchivo = "comparacion_" +
                     dataset.replace(".csv", "") + "_" +
-                    java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) +
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) +
                     ".csv";
 
-            java.nio.file.Path archivo = dir.resolve(nombreArchivo);
+            Path archivo = dir.resolve(nombreArchivo);
 
-            java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(archivo);
+            BufferedWriter writer = newBufferedWriter(archivo);
 
             // Cabecera
             writer.write("dataset,algoritmo,comparaciones,swaps,tiempo_ns");
@@ -183,6 +192,7 @@ public class SortingComparator {
             System.out.println(ANSI.GREEN + "Resultados exportados a: " + archivo + ANSI.RESET);
 
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println(ANSI.RED + "Error exportando: " + e.getMessage() + ANSI.RESET);
         }
     }
