@@ -9,27 +9,44 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import ed.u2.util.Holder;
+
+
 public class SearchEngine {
 
-    // ============================================================
-    // 1. BÚSQUEDA LINEAL POR ID (case-insensitive)
-    // ============================================================
-    public static Object buscarPorIdLineal(String id) {
+   // ============================================================
+// 1. BÚSQUEDA LINEAL POR ID + ESTADÍSTICAS
+// ============================================================
+public static Object buscarPorIdLineal(String id, SearchStats st) {
 
-        Object[] arr = DatasetManager.getArray();
-        if (arr == null)
-            return null;
+    long t0 = System.nanoTime();
 
-        String buscado = id.trim().toUpperCase();
-
-        for (Object o : arr) {
-            if (getId(o).equalsIgnoreCase(buscado))
-                return o;
-        }
+    Object[] arr = DatasetManager.getArray();
+    if (arr == null) {
+        st.setTiempo(System.nanoTime() - t0);
         return null;
     }
 
-    // ============================================================
+    String buscado = id.trim().toUpperCase();
+
+    for (Object o : arr) {
+        st.addComparacion(); // 🔹 comparación real
+
+        if (getId(o).equalsIgnoreCase(buscado)) {
+            st.addResultado(); // 🔹 encontrado
+            st.setTiempo(System.nanoTime() - t0);
+            return o;
+        }
+    }
+
+    // No encontrado
+    st.setTiempo(System.nanoTime() - t0);
+    return null;
+}
+
+
+
+        // ============================================================
     // 2. LINEAL CON CENTINELA
     // ============================================================
     public static Object buscarPorIdCentinela(String idBuscado) {
@@ -66,10 +83,55 @@ public class SearchEngine {
         return copia[i];
     }
 
+
+    // ============================================================
+    // 2. LINEAL CON CENTINELA + ESTADÍSTICAS
+    // ============================================================
+    public static SearchResult buscarPorIdCentinelaStats(String idBuscado, SearchStats st) {
+
+        long t0 = System.nanoTime();
+
+        Object[] arr = DatasetManager.getArray();
+        if (arr == null || arr.length == 0) {
+            st.setTiempo(System.nanoTime() - t0);
+            return new SearchResult(null, st);
+        }
+
+        String buscado = idBuscado.trim().toUpperCase();
+
+        // Copia con centinela
+        Object[] copia = Arrays.copyOf(arr, arr.length + 1);
+        copia[arr.length] = arr[0]; // centinela
+
+        int i = 0;
+        while (true) {
+            st.addComparacion();
+
+            String id = getId(copia[i]);
+            if (id.equalsIgnoreCase(buscado))
+                break;
+
+            i++;
+        }
+
+        Object resultado = (i == arr.length) ? null : copia[i];
+
+        if (resultado != null)
+            st.addResultado();
+
+        long t1 = System.nanoTime();
+        st.setTiempo(t1 - t0);
+
+        return new SearchResult(resultado, st );
+    }
+
     // ============================================================
     // 3. FIND ALL (TODAS LAS COINCIDENCIAS)
     // ============================================================
-    public static List<Object> findAllPorAtributo(String atributo, String valor) {
+    public static List<Object> findAllPorAtributo(
+            String atributo,
+            String valor,
+            SearchStats st) {
 
         Object[] arr = DatasetManager.getArray();
         List<Object> resultados = new ArrayList<>();
@@ -78,10 +140,14 @@ public class SearchEngine {
 
         for (Object o : arr) {
 
+            st.addComparacion(); // ← comparación real
+
             String campo = getField(o, atributo);
 
-            if (campo != null && campo.equalsIgnoreCase(buscado))
+            if (campo != null && campo.equalsIgnoreCase(buscado)) {
                 resultados.add(o);
+                st.addResultado();
+            }
         }
 
         return resultados;
@@ -90,16 +156,32 @@ public class SearchEngine {
     // ============================================================
     // 4. FIRST — PRIMERA APARICIÓN
     // ============================================================
-    public static Object firstPorAtributo(String atributo, String valor) {
-
+    public static Object firstPorAtributo(
+            String atributo,
+            String valor,
+            SearchStats st) {
         Object[] arr = DatasetManager.getArray();
+        if (arr == null)
+            return null;
+
+        st.reset(); // reiniciar estadísticas
+
         String buscado = valor.trim().toUpperCase();
 
+        long t0 = System.nanoTime();
+
         for (Object o : arr) {
+            st.addComparacion();
+
             String campo = getField(o, atributo);
-            if (campo != null && campo.equalsIgnoreCase(buscado))
+            if (campo != null && campo.equalsIgnoreCase(buscado)) {
+                st.addResultado();
+                st.setTiempo(System.nanoTime() - t0);
                 return o;
+            }
         }
+
+        st.setTiempo(System.nanoTime() - t0);
         return null;
     }
 
@@ -117,6 +199,41 @@ public class SearchEngine {
                 return arr[i];
         }
         return null;
+    }
+
+    // ============================================================
+    // LAST con estadísticas
+    // ============================================================
+    public static Object lastPorAtributo(
+            String atributo,
+            String valor,
+            SearchStats st) {
+        Object[] arr = DatasetManager.getArray();
+        if (arr == null)
+            return null;
+
+        String buscado = valor.trim().toUpperCase();
+        Object last = null;
+
+        long t0 = System.nanoTime();
+
+        for (int i = arr.length - 1; i >= 0; i--) {
+
+            st.addComparacion();
+
+            String campo = getField(arr[i], atributo);
+
+            if (campo != null && campo.equalsIgnoreCase(buscado)) {
+                last = arr[i];
+                st.addResultado();
+                break; // LAST → primera coincidencia desde el final
+            }
+        }
+
+        long t1 = System.nanoTime();
+        st.setTiempo(t1 - t0);
+
+        return last;
     }
 
     // ============================================================
@@ -142,6 +259,39 @@ public class SearchEngine {
             else
                 high = mid - 1;
         }
+        return -1;
+    }
+
+    // ============================================================
+    // 6. BÚSQUEDA BINARIA CON ESTADÍSTICAS
+    // ============================================================
+    public static int binarySearchStats(Object[] arr, String id, SearchStats st) {
+
+        long t0 = System.nanoTime();
+
+        String buscado = id.trim().toUpperCase();
+        int low = 0, high = arr.length - 1;
+
+        while (low <= high) {
+
+            int mid = low + (high - low) / 2;
+
+            st.addComparacion();
+            int cmp = getId(arr[mid]).compareToIgnoreCase(buscado);
+
+            if (cmp == 0) {
+                st.addResultado();
+                st.setTiempo(System.nanoTime() - t0);
+                return mid;
+            }
+
+            if (cmp < 0)
+                low = mid + 1;
+            else
+                high = mid - 1;
+        }
+
+        st.setTiempo(System.nanoTime() - t0);
         return -1;
     }
 
@@ -178,6 +328,55 @@ public class SearchEngine {
                 high = mid;
         }
         return low;
+    }
+
+    // ============================================================
+    // 7. BOUNDS — primer y último índice con duplicados (CON STATS)
+    // ============================================================
+    public static SearchStats boundsPorId(Object[] arr, String id) {
+
+        SearchStats st = new SearchStats();
+
+        if (arr == null || arr.length == 0)
+            return st;
+
+        String buscado = id.trim().toUpperCase();
+
+        long t0 = System.nanoTime();
+
+        // lowerBound
+        int low = 0, high = arr.length;
+        while (low < high) {
+            int mid = low + (high - low) / 2;
+            st.addComparacion();
+
+            if (getId(arr[mid]).compareToIgnoreCase(buscado) < 0)
+                low = mid + 1;
+            else
+                high = mid;
+        }
+        int lb = low;
+
+        // upperBound
+        low = 0;
+        high = arr.length;
+        while (low < high) {
+            int mid = low + (high - low) / 2;
+            st.addComparacion();
+
+            if (getId(arr[mid]).compareToIgnoreCase(buscado) <= 0)
+                low = mid + 1;
+            else
+                high = mid;
+        }
+        int ub = low;
+
+        long t1 = System.nanoTime();
+
+        st.resultadosEncontrados = Math.max(0, ub - lb);
+        st.setTiempo(t1 - t0);
+
+        return st;
     }
 
     // ============================================================
@@ -246,6 +445,117 @@ public class SearchEngine {
     }
 
     // ============================================================
+
+    public static SearchStats sllFindAllStats(String atributo, String valor, List<Object> out) {
+
+        SearchStats st = new SearchStats();
+        st.reset();
+
+        SinglyLinkedList<?> sll = DatasetManager.getSLL();
+        if (sll == null)
+            return st;
+
+        String buscado = valor.trim().toUpperCase();
+
+        long t0 = System.nanoTime();
+
+        Node<?> actual = sll.getHead();
+
+        while (actual != null) {
+
+            st.addComparacion();
+
+            Object o = actual.getData();
+            String campo = getField(o, atributo);
+
+            if (campo != null && campo.equalsIgnoreCase(buscado)) {
+                out.add(o);
+                st.addResultado();
+            }
+
+            actual = actual.getNext();
+        }
+
+        long t1 = System.nanoTime();
+        st.setTiempo(t1 - t0);
+
+        return st;
+    }
+
+    public static SearchStats sllFirstStats(String atributo, String valor, Holder<Object> result) {
+
+        SearchStats st = new SearchStats();
+        st.reset();
+
+        SinglyLinkedList<?> sll = DatasetManager.getSLL();
+        if (sll == null)
+            return st;
+
+        String buscado = valor.trim().toUpperCase();
+
+        long t0 = System.nanoTime();
+
+        Node<?> actual = sll.getHead();
+
+        while (actual != null) {
+
+            st.addComparacion();
+
+            Object o = actual.getData();
+            String campo = getField(o, atributo);
+
+            if (campo != null && campo.equalsIgnoreCase(buscado)) {
+                result.value = o;
+                st.addResultado();
+                break;
+            }
+
+            actual = actual.getNext();
+        }
+
+        long t1 = System.nanoTime();
+        st.setTiempo(t1 - t0);
+
+        return st;
+    }
+
+    public static SearchStats sllLastStats(String atributo, String valor, Holder<Object> result) {
+
+        SearchStats st = new SearchStats();
+        st.reset();
+
+        SinglyLinkedList<?> sll = DatasetManager.getSLL();
+        if (sll == null)
+            return st;
+
+        String buscado = valor.trim().toUpperCase();
+
+        long t0 = System.nanoTime();
+
+        Node<?> actual = sll.getHead();
+
+        while (actual != null) {
+
+            st.addComparacion();
+
+            Object o = actual.getData();
+            String campo = getField(o, atributo);
+
+            if (campo != null && campo.equalsIgnoreCase(buscado)) {
+                result.value = o;
+                st.addResultado();
+            }
+
+            actual = actual.getNext();
+        }
+
+        long t1 = System.nanoTime();
+        st.setTiempo(t1 - t0);
+
+        return st;
+    }
+
+    // ============================================================
     // MÉTODOS UTILITARIOS
     // ============================================================
 
@@ -295,4 +605,5 @@ public class SearchEngine {
 
         return null;
     }
+
 }

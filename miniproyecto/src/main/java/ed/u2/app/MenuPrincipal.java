@@ -1,15 +1,19 @@
 package ed.u2.app;
 
 import ed.u2.data.DatasetManager;
+import ed.u2.io.ExportUtils;
 import ed.u2.io.FileUtils;
 import ed.u2.model.*;
 import ed.u2.search.SearchEngine;
+import ed.u2.search.SearchStats;
 import ed.u2.sorting.*;
 import ed.u2.stats.OperationStats;
-import ed.u2.stats.StatsManager;
+import ed.u2.stats.SearchStatsManager;
+import ed.u2.stats.SearchStatsRepository;
+import ed.u2.stats.SortingStatsManager;
 import ed.u2.util.ANSI;
 import ed.u2.util.ConsoleUtils;
-
+import ed.u2.util.Holder;
 import java.io.File;
 import java.util.*;
 
@@ -69,12 +73,17 @@ public class MenuPrincipal {
                 ConsoleUtils.pausar("");
                 break;
             case "6":
-                System.out.println(ANSI.YELLOW + "[Estadísticas aún no implementadas]" + ANSI.RESET);
-                // StatsManager.mostrarEstadisticas();
+                submenuEstadisticas();
                 ConsoleUtils.pausar("");
                 break;
             case "7":
-                System.out.println(ANSI.YELLOW + "[Exportaciones aún no implementadas]" + ANSI.RESET);
+                System.out.println(ANSI.CYAN_BOLD + "\n=== EXPORTAR ESTADÍSTICAS / RESULTADOS ===" + ANSI.RESET);
+                boolean ok = ExportUtils.exportEstadisticas();
+                if (ok) {
+                    System.out.println(ANSI.GREEN + "Exportación completada. Archivos guardados en la carpeta 'export'." + ANSI.RESET);
+                } else {
+                    System.out.println(ANSI.RED_BOLD + "Error al exportar. Revise permisos o inténtelo nuevamente." + ANSI.RESET);
+                }
                 ConsoleUtils.pausar("");
                 break;
             case "8":
@@ -85,6 +94,49 @@ public class MenuPrincipal {
                 System.out.println(ANSI.RED_BOLD + "Opción inválida." + ANSI.RESET);
         }
     }
+
+    private void submenuEstadisticas() {
+
+    while (true) {
+        System.out.println(ANSI.CYAN_BOLD +
+                "\n=== ESTADÍSTICAS VISUALES ===" + ANSI.RESET);
+
+        System.out.println("1. Estadísticas de ordenación");
+        System.out.println("2. Estadísticas de búsquedas");
+        System.out.println("3. Volver");
+
+        String op = ConsoleUtils.leerLinea("Opción: ");
+
+        switch (op) {
+
+            case "1" -> {
+                SortingStatsManager.mostrar();
+                ConsoleUtils.pausar("");
+            }
+
+            case "2" -> {
+                if (!SearchStatsRepository.hayDatos()) {
+                    System.out.println(
+                        ANSI.RED + "No hay estadísticas de búsquedas aún." + ANSI.RESET
+                    );
+                } else {
+                    SearchStatsManager.mostrar(
+                        SearchStatsRepository.getAll()
+                    );
+                }
+                ConsoleUtils.pausar("");
+            }
+
+            case "3" -> {
+                return;
+            }
+
+            default -> System.out.println(
+                ANSI.RED_BOLD + "Opción inválida." + ANSI.RESET
+            );
+        }
+    }
+}
 
     // ============================================================
     // OPCIÓN 1 – DATASETS OFICIALES
@@ -142,7 +194,7 @@ public class MenuPrincipal {
 
         if (DatasetManager.hayDataset()) {
             System.out.println(ANSI.GREEN_BOLD + "\nDataset cargado correctamente.\n" + ANSI.RESET);
-           
+
         } else {
             System.out.println(ANSI.RED_BOLD + "El CSV no coincide con ningún dataset conocido.\n" + ANSI.RESET);
         }
@@ -165,128 +217,122 @@ public class MenuPrincipal {
 
         String tipo = ConsoleUtils.leerLinea("Algoritmo: ");
 
+        // Validar opción de algoritmo
+        if (!tipo.equals("1") && !tipo.equals("2") && !tipo.equals("3")) {
+            System.out.println(ANSI.RED_BOLD + "Opción inválida. Seleccione 1, 2 o 3." + ANSI.RESET);
+            return;
+        }
+
         System.out.println("1. Ascendente");
         System.out.println("2. Descendente");
 
-        boolean asc = ConsoleUtils.leerLinea("Sentido: ").equals("1");
+        // Leer y validar sentido una sola vez
+        String sentido = ConsoleUtils.leerLinea("Sentido: ");
+
+        if (!sentido.equals("1") && !sentido.equals("2")) {
+            System.out.println(ANSI.RED_BOLD + "Opción inválida. Seleccione 1 o 2 para el sentido." + ANSI.RESET);
+            return;
+        }
+
+        boolean asc = sentido.equals("1");
 
         switch (DatasetManager.getTipoActual()) {
-
             case CITAS -> ordenarCitas(tipo, asc);
             case PACIENTES -> ordenarPacientes(tipo, asc);
             case INVENTARIO -> ordenarInventario(tipo, asc);
-
-            default ->
-                System.out.println(ANSI.RED_BOLD + "Dataset desconocido." + ANSI.RESET);
+            default -> System.out.println(ANSI.RED_BOLD + "Dataset desconocido." + ANSI.RESET);
         }
-        
     }
 
-   
+    private <T> void mostrarEstadisticasOrden(T[] arr, OperationStats st) {
 
+        System.out.println(ANSI.GREEN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+        System.out.println(ANSI.GREEN + "║                PRIMEROS 10 REGISTROS                   ║" + ANSI.RESET);
+        System.out.println(ANSI.GREEN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+        for (int i = 0; i < Math.min(10, arr.length); i++) {
+            System.out.printf(ANSI.GREEN + "║ %-54s ║\n" + ANSI.RESET, arr[i]);
+        }
+        System.out.println(ANSI.GREEN + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
 
+        System.out.println(ANSI.GREEN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+        System.out.println(ANSI.GREEN + "║                ÚLTIMOS 10 REGISTROS                    ║" + ANSI.RESET);
+        System.out.println(ANSI.GREEN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+        for (int i = Math.max(0, arr.length - 10); i < arr.length; i++) {
+            System.out.printf(ANSI.GREEN + "║ %-54s ║\n" + ANSI.RESET, arr[i]);
+        }
+        System.out.println(ANSI.CYAN + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
 
-  private <T> void mostrarEstadisticasOrden(T[] arr, OperationStats st) {
+        System.out.println(ANSI.CYAN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+        System.out.println(ANSI.CYAN + "║                ESTADÍSTICAS DE ORDENACIÓN              ║" + ANSI.RESET);
+        System.out.println(ANSI.CYAN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+        System.out.println(ANSI.CYAN + "║ Métrica              ║ Valor                           ║" + ANSI.RESET);
+        System.out.println(ANSI.CYAN + "╠══════════════════════╬═════════════════════════════════╣" + ANSI.RESET);
+        System.out.printf(ANSI.CYAN + "║ Comparaciones        ║ %-28d    ║\n" + ANSI.RESET, st.getComparisons());
+        System.out.printf(ANSI.CYAN + "║ Intercambios         ║ %-28d    ║\n" + ANSI.RESET, st.getSwaps());
+        System.out.printf(ANSI.CYAN + "║ Tiempo (ns)          ║ %-28d    ║\n" + ANSI.RESET, st.getTime());
+        System.out.println(ANSI.CYAN + "╚══════════════════════╩═════════════════════════════════╝" + ANSI.RESET);
 
-    System.out.println(ANSI.CYAN_BOLD + "\nPrimeros 10 registros:" + ANSI.RESET);
-    for (int i = 0; i < Math.min(10, arr.length); i++)
-        System.out.println(arr[i]);
-
-    System.out.println(ANSI.CYAN_BOLD + "\nÚltimos 10 registros:" + ANSI.RESET);
-    for (int i = Math.max(0, arr.length - 10); i < arr.length; i++)
-        System.out.println(arr[i]);
-
-    System.out.println(ANSI.YELLOW_BOLD + "\n--- ESTADÍSTICAS DE ORDENACIÓN ---" + ANSI.RESET);
-    System.out.println("Comparaciones: " + st.getComparisons());
-    System.out.println("Intercambios:  " + st.getSwaps());
-    System.out.println("Tiempo (ns):   " + st.getTime());
-
-    ConsoleUtils.pausar("\n");
-}
-
-
-private void ordenarCitas(String tipo, boolean asc) {
-
-    Cita[] arr = Arrays.copyOf(
-            DatasetManager.getArray(),
-            DatasetManager.getArray().length,
-            Cita[].class);
-
-    // Tiempo real del algoritmo
-    long t0 = System.nanoTime();
-    OperationStats st = aplicarAlgoritmo(tipo, arr, asc);
-    long t1 = System.nanoTime();
-
-    st.setTime(t1 - t0);
-
-    mostrarEstadisticasOrden(arr, st);
-}
-
-  private void ordenarPacientes(String tipo, boolean asc) {
-
-    Paciente[] arr = Arrays.copyOf(
-            DatasetManager.getArray(),
-            DatasetManager.getArray().length,
-            Paciente[].class);
-
-    long t0 = System.nanoTime();
-    OperationStats st = aplicarAlgoritmo(tipo, arr, asc);
-    long t1 = System.nanoTime();
-
-    st.setTime(t1 - t0);
-
-    mostrarEstadisticasOrden(arr, st);
-}
-
-
-private void ordenarInventario(String tipo, boolean asc) {
-
-    InventarioItem[] arr = Arrays.copyOf(
-            DatasetManager.getArray(),
-            DatasetManager.getArray().length,
-            InventarioItem[].class);
-
-    long t0 = System.nanoTime();
-    OperationStats st = aplicarAlgoritmo(tipo, arr, asc);
-    long t1 = System.nanoTime();
-
-    st.setTime(t1 - t0);
-
-    mostrarEstadisticasOrden(arr, st);
-}
-
-
-    
-
-
- private <T extends Comparable<T>> OperationStats aplicarAlgoritmo(String tipo, T[] arr, boolean asc) {
-
-    return switch (tipo) {
-        case "1" -> BubbleSorter.sort(arr, asc);
-        case "2" -> SelectionSorter.sort(arr, asc);
-        case "3" -> InsertionSorter.sort(arr, asc);
-        default -> null;
-    };
-}
-
-private void mostrarEstadisticasOrden(OperationStats st) {
-
-    if (st == null) {
-        System.out.println("No se generaron estadísticas.");
-        return;
+        ConsoleUtils.pausar("\n");
     }
 
-    System.out.println(ANSI.YELLOW_BOLD + "\n--- ESTADÍSTICAS DE ORDENACIÓN ---" + ANSI.RESET);
+    private void ordenarCitas(String tipo, boolean asc) {
 
-    System.out.println("Comparaciones: " + st.getComparisons());
-    System.out.println("Intercambios:  " + st.getSwaps());
-    System.out.println("Tiempo (ns):   " + st.getTime());
+        Cita[] arr = Arrays.copyOf(
+                DatasetManager.getArray(),
+                DatasetManager.getArray().length,
+                Cita[].class);
 
-    ConsoleUtils.pausar("\n");
-}
+        // Tiempo real del algoritmo
+        long t0 = System.nanoTime();
+        OperationStats st = aplicarAlgoritmo(tipo, arr, asc);
+        long t1 = System.nanoTime();
 
-  
+        st.setTime(t1 - t0);
 
+        mostrarEstadisticasOrden(arr, st);
+    }
+
+    private void ordenarPacientes(String tipo, boolean asc) {
+
+        Paciente[] arr = Arrays.copyOf(
+                DatasetManager.getArray(),
+                DatasetManager.getArray().length,
+                Paciente[].class);
+
+        long t0 = System.nanoTime();
+        OperationStats st = aplicarAlgoritmo(tipo, arr, asc);
+        long t1 = System.nanoTime();
+
+        st.setTime(t1 - t0);
+
+        mostrarEstadisticasOrden(arr, st);
+    }
+
+    private void ordenarInventario(String tipo, boolean asc) {
+
+        InventarioItem[] arr = Arrays.copyOf(
+                DatasetManager.getArray(),
+                DatasetManager.getArray().length,
+                InventarioItem[].class);
+
+        long t0 = System.nanoTime();
+        OperationStats st = aplicarAlgoritmo(tipo, arr, asc);
+        long t1 = System.nanoTime();
+
+        st.setTime(t1 - t0);
+
+        mostrarEstadisticasOrden(arr, st);
+    }
+
+    private <T extends Comparable<T>> OperationStats aplicarAlgoritmo(String tipo, T[] arr, boolean asc) {
+
+        return switch (tipo) {
+            case "1" -> BubbleSorter.sort(arr, asc);
+            case "2" -> SelectionSorter.sort(arr, asc);
+            case "3" -> InsertionSorter.sort(arr, asc);
+            default -> null;
+        };
+    }
 
     // ==========================================================
     // OPCIÓN 4 – BÚSQUEDAS
@@ -335,26 +381,42 @@ private void mostrarEstadisticasOrden(OperationStats st) {
 
         String id = ConsoleUtils.leerLinea("Ingrese ID a buscar:");
 
-        long t0 = System.nanoTime();
-        Object res = DatasetManager.buscarPorId(id);
-        long t1 = System.nanoTime();
+        SearchStats stats = new SearchStats();
+
+        Object res = SearchEngine.buscarPorIdLineal(id, stats);
 
         if (res == null) {
-            System.out.println(ANSI.RED + " No se encontró el registro." + ANSI.RESET);
+            System.out.println(ANSI.RED + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.RED + "║                NO SE ENCONTRO EL REGISTRO              ║" + ANSI.RESET);
+            System.out.println(ANSI.RED + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
         } else {
-            System.out.println(ANSI.GREEN + " Registro encontrado:" + ANSI.RESET);
-            System.out.println(res);
-        }
+            System.out
+                    .println(ANSI.GREEN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.GREEN + "║                    REGISTRO ENCONTRADO                 ║" + ANSI.RESET);
+            System.out.println(ANSI.GREEN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+            System.out.printf(ANSI.GREEN + "║ %-54s ║\n" + ANSI.RESET, res.toString());
+            System.out.println(ANSI.GREEN + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
 
-        System.out.println(ANSI.CYAN_BOLD + " Tiempo: " + (t1 - t0) + " ns" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "║          ESTADÍSTICAS DE BÚSQUEDA (Lineal por ID)      ║" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "║ Métrica              ║ Valor                           ║" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "╠══════════════════════╬═════════════════════════════════╣" + ANSI.RESET);
+            System.out.printf(ANSI.CYAN + "║ Comparaciones        ║ %-28d    ║\n" + ANSI.RESET, stats.comparaciones);
+            System.out.printf(ANSI.CYAN + "║ Resultados           ║ %-28d    ║\n" + ANSI.RESET,
+                    stats.resultadosEncontrados);
+            System.out.printf(ANSI.CYAN + "║ Tiempo (ns)          ║ %-28d    ║\n" + ANSI.RESET, stats.tiempoNs);
+            System.out.println(ANSI.CYAN + "╚══════════════════════╩═════════════════════════════════╝" + ANSI.RESET);
+        }
+        
 
         // Registrar en historial
         HistoryManager.log(
                 "SEARCH",
                 "Lineal por ID",
                 "id=" + id.toUpperCase(),
-                1,
-                (t1 - t0));
+                stats.resultadosEncontrados,
+                stats.tiempoNs);
 
         ConsoleUtils.pausar("");
     }
@@ -362,18 +424,35 @@ private void mostrarEstadisticasOrden(OperationStats st) {
     private void busquedaCentinela() {
         String id = ConsoleUtils.leerLinea("Ingrese ID a buscar:");
 
+        SearchStats stats = new SearchStats();
+
         long t0 = System.nanoTime();
         Object res = DatasetManager.buscarPorId(id);
         long t1 = System.nanoTime();
 
         if (res == null) {
-            System.out.println(ANSI.RED + " No se encontró el registro." + ANSI.RESET);
+            System.out.println(ANSI.RED + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.RED + "║                NO SE ENCONTRO EL REGISTRO              ║" + ANSI.RESET);
+            System.out.println(ANSI.RED + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
         } else {
-            System.out.println(ANSI.GREEN + " Registro encontrado:" + ANSI.RESET);
-            System.out.println(res);
-        }
+            System.out
+                    .println(ANSI.GREEN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.GREEN + "║                    REGISTRO ENCONTRADO                 ║" + ANSI.RESET);
+            System.out.println(ANSI.GREEN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+            System.out.printf(ANSI.GREEN + "║ %-54s ║\n" + ANSI.RESET, res.toString());
+            System.out.println(ANSI.GREEN + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
 
-        System.out.println(ANSI.CYAN_BOLD + " Tiempo: " + (t1 - t0) + " ns" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "║          ESTADÍSTICAS DE BÚSQUEDA (Centinela por ID)   ║" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "║ Métrica              ║ Valor                           ║" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "╠══════════════════════╬═════════════════════════════════╣" + ANSI.RESET);
+            System.out.printf(ANSI.CYAN + "║ Comparaciones        ║ %-28d    ║\n" + ANSI.RESET, stats.comparaciones);
+            System.out.printf(ANSI.CYAN + "║ Resultados           ║ %-28d    ║\n" + ANSI.RESET,
+                    stats.resultadosEncontrados);
+            System.out.printf(ANSI.CYAN + "║ Tiempo (ns)          ║ %-28d    ║\n" + ANSI.RESET, stats.tiempoNs);
+            System.out.println(ANSI.CYAN + "╚══════════════════════╩═════════════════════════════════╝" + ANSI.RESET);
+        }
 
         // Registrar en historial
         HistoryManager.log(
@@ -392,24 +471,46 @@ private void mostrarEstadisticasOrden(OperationStats st) {
         String atributo = seleccionarAtributo();
         String valor = ConsoleUtils.leerLinea("Valor a buscar: ");
 
+        SearchStats st = new SearchStats();
+
         long t0 = System.nanoTime();
-        var lista = SearchEngine.findAllPorAtributo(atributo, valor);
+        List<Object> lista = SearchEngine.findAllPorAtributo(atributo, valor, st);
         long t1 = System.nanoTime();
 
-        System.out.println(ANSI.GREEN_BOLD + "\nResultados encontrados: " + lista.size() + ANSI.RESET);
+        st.setTiempo(t1 - t0);
 
-        for (Object o : lista)
-            System.out.println(o);
+        if (lista.isEmpty()) {
+            System.out.println(ANSI.RED + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.RED + "║                NO SE ENCONTRARON RESULTADOS            ║" + ANSI.RESET);
+            System.out.println(ANSI.RED + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
+        } else {
+            System.out
+                    .println(ANSI.GREEN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.GREEN + "║                RESULTADOS ENCONTRADOS                  ║" + ANSI.RESET);
+            System.out.println(ANSI.GREEN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+            for (Object o : lista) {
+                System.out.printf(ANSI.GREEN + "║ %-54s ║\n" + ANSI.RESET, o.toString());
+            }
+            System.out.println(ANSI.GREEN + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
 
-        System.out.println("\nTiempo: " + (t1 - t0) + " ns\n");
-        
-        // Registrar en historial
+            System.out.println(ANSI.CYAN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "║                ESTADÍSTICAS DE BÚSQUEDA (findAll)      ║" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "║ Métrica              ║ Valor                           ║" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "╠══════════════════════╬═════════════════════════════════╣" + ANSI.RESET);
+            System.out.printf(ANSI.CYAN + "║ Comparaciones        ║ %-28d    ║\n" + ANSI.RESET, st.comparaciones);
+            System.out.printf(ANSI.CYAN + "║ Resultados           ║ %-28d    ║\n" + ANSI.RESET,
+                    st.resultadosEncontrados);
+            System.out.printf(ANSI.CYAN + "║ Tiempo (ns)          ║ %-28d    ║\n" + ANSI.RESET, st.tiempoNs);
+            System.out.println(ANSI.CYAN + "╚══════════════════════╩═════════════════════════════════╝" + ANSI.RESET);
+        }
+
         HistoryManager.log(
                 "SEARCH",
                 "findAll por " + atributo,
                 atributo + "=" + valor.toUpperCase(),
-                lista.size(),
-                (t1 - t0));
+                st.resultadosEncontrados,
+                st.tiempoNs);
 
         ConsoleUtils.pausar("");
     }
@@ -419,19 +520,41 @@ private void mostrarEstadisticasOrden(OperationStats st) {
         String atributo = seleccionarAtributo();
         String valor = ConsoleUtils.leerLinea("Valor a buscar: ");
 
-        long t0 = System.nanoTime();
-        Object res = SearchEngine.firstPorAtributo(atributo, valor);
-        long t1 = System.nanoTime();
+        SearchStats st = new SearchStats();
 
-        mostrarResultadoBusqueda(res, "First", t1 - t0);
+        Object res = SearchEngine.firstPorAtributo(atributo, valor, st);
 
-        // Registrar en historial
+        if (res == null) {
+            System.out.println(ANSI.RED + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.RED + "║                NO SE ENCONTRARON RESULTADOS            ║" + ANSI.RESET);
+            System.out.println(ANSI.RED + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
+        } else {
+            System.out
+                    .println(ANSI.GREEN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.GREEN + "║                RESULTADOS ENCONTRADOS                  ║" + ANSI.RESET);
+            System.out.println(ANSI.GREEN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+            System.out.printf(ANSI.GREEN + "║ %-54s ║\n" + ANSI.RESET, res.toString());
+            System.out.println(ANSI.GREEN + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
+
+            System.out.println(ANSI.CYAN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "║                ESTADÍSTICAS DE BÚSQUEDA (First)        ║" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "║ Métrica              ║ Valor                           ║" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "╠══════════════════════╬═════════════════════════════════╣" + ANSI.RESET);
+            System.out.printf(ANSI.CYAN + "║ Comparaciones        ║ %-28d    ║\n" + ANSI.RESET, st.comparaciones);
+            System.out.printf(ANSI.CYAN + "║ Resultados           ║ %-28d    ║\n" + ANSI.RESET,
+                    st.resultadosEncontrados);
+            System.out.printf(ANSI.CYAN + "║ Tiempo (ns)          ║ %-28d    ║\n" + ANSI.RESET, st.tiempoNs);
+            System.out.println(ANSI.CYAN + "╚══════════════════════╩═════════════════════════════════╝" + ANSI.RESET);
+        }
+
+        // historial
         HistoryManager.log(
                 "SEARCH",
                 "First por " + atributo,
                 atributo + "=" + valor.toUpperCase(),
-                res == null ? 0 : 1,
-                (t1 - t0));
+                st.resultadosEncontrados,
+                st.tiempoNs);
 
         ConsoleUtils.pausar("");
     }
@@ -441,19 +564,41 @@ private void mostrarEstadisticasOrden(OperationStats st) {
         String atributo = seleccionarAtributo();
         String valor = ConsoleUtils.leerLinea("Valor a buscar: ");
 
-        long t0 = System.nanoTime();
-        Object res = SearchEngine.lastPorAtributo(atributo, valor);
-        long t1 = System.nanoTime();
+        SearchStats st = new SearchStats();
 
-        mostrarResultadoBusqueda(res, "Last", t1 - t0);
+        Object res = SearchEngine.lastPorAtributo(atributo, valor, st);
 
-        // Registrar en historial
+        if (res == null) {
+            System.out.println(ANSI.RED + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.RED + "║                NO SE ENCONTRARON RESULTADOS            ║" + ANSI.RESET);
+            System.out.println(ANSI.RED + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
+        } else {
+            System.out
+                    .println(ANSI.GREEN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.GREEN + "║                RESULTADOS ENCONTRADOS                  ║" + ANSI.RESET);
+            System.out.println(ANSI.GREEN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+            System.out.printf(ANSI.GREEN + "║ %-54s ║\n" + ANSI.RESET, res.toString());
+            System.out.println(ANSI.GREEN + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
+
+            System.out.println(ANSI.CYAN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "║                ESTADÍSTICAS DE BÚSQUEDA (Last)         ║" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "║ Métrica              ║ Valor                           ║" + ANSI.RESET);
+            System.out.println(ANSI.CYAN + "╠══════════════════════╬═════════════════════════════════╣" + ANSI.RESET);
+            System.out.printf(ANSI.CYAN + "║ Comparaciones        ║ %-28d    ║\n" + ANSI.RESET, st.comparaciones);
+            System.out.printf(ANSI.CYAN + "║ Resultados           ║ %-28d    ║\n" + ANSI.RESET,
+                    st.resultadosEncontrados);
+            System.out.printf(ANSI.CYAN + "║ Tiempo (ns)          ║ %-28d    ║\n" + ANSI.RESET, st.tiempoNs);
+            System.out.println(ANSI.CYAN + "╚══════════════════════╩═════════════════════════════════╝" + ANSI.RESET);
+        }
+
+        // Historial
         HistoryManager.log(
                 "SEARCH",
                 "Last por " + atributo,
                 atributo + "=" + valor.toUpperCase(),
-                res == null ? 0 : 1,
-                (t1 - t0));
+                st.resultadosEncontrados,
+                st.tiempoNs);
 
         ConsoleUtils.pausar("");
     }
@@ -464,22 +609,33 @@ private void mostrarEstadisticasOrden(OperationStats st) {
 
         Object[] arr = DatasetManager.getArray();
 
-        long t0 = System.nanoTime();
-        int pos = SearchEngine.binarySearch(arr, id);
-        long t1 = System.nanoTime();
+        SearchStats st = new SearchStats();
 
-        if (pos >= 0)
-            mostrarResultadoBusqueda(arr[pos], "Binaria", t1 - t0);
-        else
-            mostrarResultadoBusqueda(null, "Binaria", t1 - t0);
+        int pos = SearchEngine.binarySearchStats(arr, id, st);
 
-        // Registrar en historial
+        if (pos >= 0) {
+            mostrarResultadoBusqueda(arr[pos], "Binaria", st.tiempoNs);
+            
+        System.out.println(ANSI.CYAN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+        System.out.println(ANSI.CYAN + "║                ESTADÍSTICAS DE BÚSQUEDA (Binaria)      ║" + ANSI.RESET);
+        System.out.println(ANSI.CYAN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+        System.out.println(ANSI.CYAN + "║ Métrica              ║ Valor                           ║" + ANSI.RESET);
+        System.out.println(ANSI.CYAN + "╠══════════════════════╬═════════════════════════════════╣" + ANSI.RESET);
+        System.out.printf(ANSI.CYAN + "║ Comparaciones        ║ %-28d    ║\n" + ANSI.RESET, st.comparaciones);
+        System.out.printf(ANSI.CYAN + "║ Resultados           ║ %-28d    ║\n" + ANSI.RESET, st.resultadosEncontrados);
+        System.out.printf(ANSI.CYAN + "║ Tiempo (ns)          ║ %-28d    ║\n" + ANSI.RESET, st.tiempoNs);
+        System.out.println(ANSI.CYAN + "╚══════════════════════╩═════════════════════════════════╝" + ANSI.RESET);
+
+        } else {
+            mostrarResultadoBusqueda(null, "Binaria", st.tiempoNs);
+        }
+
         HistoryManager.log(
                 "SEARCH",
                 "Binaria por ID",
                 "id=" + id.toUpperCase(),
-                pos >= 0 ? 1 : 0,
-                (t1 - t0));
+                st.resultadosEncontrados,
+                st.tiempoNs);
 
         ConsoleUtils.pausar("");
     }
@@ -487,29 +643,35 @@ private void mostrarEstadisticasOrden(OperationStats st) {
     private void busquedaBounds() {
 
         String id = ConsoleUtils.leerLinea("ID duplicado a buscar: ");
-
         Object[] arr = DatasetManager.getArray();
 
-        long t0 = System.nanoTime();
-        int lb = SearchEngine.lowerBound(arr, id);
-        int ub = SearchEngine.upperBound(arr, id);
-        long t1 = System.nanoTime();
+        SearchStats st = SearchEngine.boundsPorId(arr, id);
 
-        System.out.println(ANSI.GREEN_BOLD + "limite inferior = " + lb + ANSI.RESET);
-        System.out.println(ANSI.GREEN_BOLD + "limite superior = " + ub + ANSI.RESET);
-        System.out.println("Total duplicados = " + (ub - lb));
-        System.out.println("\nTiempo: " + (t1 - t0) + " ns");
+        System.out.println(ANSI.GREEN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+        System.out.println(ANSI.GREEN + "║                RESULTADOS ENCONTRADOS                  ║" + ANSI.RESET);
+        System.out.println(ANSI.GREEN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+        System.out.printf(ANSI.GREEN + "║ %-54s ║\n" + ANSI.RESET,
+                "Cantidad de resultados: " + st.resultadosEncontrados);
+        System.out.println(ANSI.GREEN + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
 
-        // Registrar en historial
+        System.out.println(ANSI.CYAN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+        System.out.println(ANSI.CYAN + "║                ESTADÍSTICAS DE BÚSQUEDA (Bounds)       ║" + ANSI.RESET);
+        System.out.println(ANSI.CYAN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+        System.out.println(ANSI.CYAN + "║ Métrica              ║ Valor                           ║" + ANSI.RESET);
+        System.out.println(ANSI.CYAN + "╠══════════════════════╬═════════════════════════════════╣" + ANSI.RESET);
+        System.out.printf(ANSI.CYAN + "║ Comparaciones        ║ %-28d    ║\n" + ANSI.RESET, st.comparaciones);
+        System.out.printf(ANSI.CYAN + "║ Resultados           ║ %-28d    ║\n" + ANSI.RESET, st.resultadosEncontrados);
+        System.out.printf(ANSI.CYAN + "║ Tiempo (ns)          ║ %-28d    ║\n" + ANSI.RESET, st.tiempoNs);
+        System.out.println(ANSI.CYAN + "╚══════════════════════╩═════════════════════════════════╝" + ANSI.RESET);
+
         HistoryManager.log(
                 "SEARCH",
                 "Bounds por ID",
                 "id=" + id.toUpperCase(),
-                (ub - lb),
-                (t1 - t0));
+                st.resultadosEncontrados,
+                st.tiempoNs);
 
         ConsoleUtils.pausar("");
-
     }
 
     private void submenuSLL() {
@@ -541,24 +703,26 @@ private void mostrarEstadisticasOrden(OperationStats st) {
         String atributo = seleccionarAtributo();
         String valor = ConsoleUtils.leerLinea("Valor: ");
 
-        long t0 = System.nanoTime();
-        List<Object> resultados = SearchEngine.sllFindAll(atributo, valor);
-        long t1 = System.nanoTime();
+        List<Object> resultados = new ArrayList<>();
 
-        System.out.println(ANSI.GREEN_BOLD + "\nResultados encontrados: " + resultados.size() + ANSI.RESET);
+        SearchStats st = SearchEngine.sllFindAllStats(atributo, valor, resultados);
 
-        for (Object o : resultados)
-            System.out.println(o);
+        System.out.println(ANSI.GREEN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+        System.out.println(ANSI.GREEN + "║                RESULTADOS ENCONTRADOS                  ║" + ANSI.RESET);
+        System.out.println(ANSI.GREEN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+        for (Object o : resultados) {
+            System.out.printf(ANSI.GREEN + "║ %-54s ║\n" + ANSI.RESET, o.toString());
+        }
+        System.out.println(ANSI.GREEN + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
 
-        System.out.println("\nTiempo: " + (t1 - t0) + " ns\n");
+        mostrarStatsBusqueda("SLL-findAll", st);
 
-        // Registrar en historial
         HistoryManager.log(
                 "SEARCH",
                 "SLL-findAll por " + atributo,
                 atributo + "=" + valor.toUpperCase(),
-                resultados.size(),
-                (t1 - t0));
+                st.resultadosEncontrados,
+                st.tiempoNs);
 
         ConsoleUtils.pausar("");
     }
@@ -568,19 +732,19 @@ private void mostrarEstadisticasOrden(OperationStats st) {
         String atributo = seleccionarAtributo();
         String valor = ConsoleUtils.leerLinea("Valor: ");
 
-        long t0 = System.nanoTime();
-        Object res = SearchEngine.sllFirst(atributo, valor);
-        long t1 = System.nanoTime();
+        Holder<Object> res = new Holder<>();
 
-        mostrarResultadoBusqueda(res, "SLL-First", t1 - t0);
+        SearchStats st = SearchEngine.sllFirstStats(atributo, valor, res);
 
-        // Registrar en historial
+        mostrarResultadoBusqueda(res.value, "SLL-First", st.tiempoNs);
+        mostrarStatsBusqueda("SLL-First", st);
+
         HistoryManager.log(
                 "SEARCH",
                 "SLL-First por " + atributo,
                 atributo + "=" + valor.toUpperCase(),
-                res == null ? 0 : 1,
-                (t1 - t0));
+                st.resultadosEncontrados,
+                st.tiempoNs);
 
         ConsoleUtils.pausar("");
     }
@@ -590,33 +754,52 @@ private void mostrarEstadisticasOrden(OperationStats st) {
         String atributo = seleccionarAtributo();
         String valor = ConsoleUtils.leerLinea("Valor: ");
 
-        long t0 = System.nanoTime();
-        Object res = SearchEngine.sllLast(atributo, valor);
-        long t1 = System.nanoTime();
+        Holder<Object> res = new Holder<>();
 
-        mostrarResultadoBusqueda(res, "SLL-Last", t1 - t0);
+        SearchStats st = SearchEngine.sllLastStats(atributo, valor, res);
 
-        // Registrar en historial
+        mostrarResultadoBusqueda(res.value, "SLL-Last", st.tiempoNs);
+        mostrarStatsBusqueda("SLL-Last", st);
+
         HistoryManager.log(
                 "SEARCH",
                 "SLL-Last por " + atributo,
                 atributo + "=" + valor.toUpperCase(),
-                res == null ? 0 : 1,
-                (t1 - t0));
+                st.resultadosEncontrados,
+                st.tiempoNs);
 
         ConsoleUtils.pausar("");
+    }
+
+    private void mostrarStatsBusqueda(String tipo, SearchStats st) {
+
+        System.out.println(ANSI.CYAN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+        System.out.printf(ANSI.CYAN + "║                ESTADÍSTICAS DE BÚSQUEDA (%-10s)        ║\n" + ANSI.RESET,
+                tipo);
+        System.out.println(ANSI.CYAN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+        System.out.println(ANSI.CYAN + "║ Métrica              ║ Valor                           ║" + ANSI.RESET);
+        System.out.println(ANSI.CYAN + "╠══════════════════════╬═════════════════════════════════╣" + ANSI.RESET);
+        System.out.printf(ANSI.CYAN + "║ Comparaciones        ║ %-28d    ║\n" + ANSI.RESET, st.comparaciones);
+        System.out.printf(ANSI.CYAN + "║ Resultados           ║ %-28d    ║\n" + ANSI.RESET, st.resultadosEncontrados);
+        System.out.printf(ANSI.CYAN + "║ Tiempo (ns)          ║ %-28d    ║\n" + ANSI.RESET, st.tiempoNs);
+        System.out.println(ANSI.CYAN + "╚══════════════════════╩═════════════════════════════════╝" + ANSI.RESET);
     }
 
     private void mostrarResultadoBusqueda(Object res, String tipo, long tiempo) {
 
         if (res == null) {
-            System.out.println(ANSI.RED_BOLD + " No encontrado (" + tipo + ")" + ANSI.RESET);
+            System.out.println(ANSI.RED + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.RED + "║                NO SE ENCONTRÓ EL REGISTRO              ║" + ANSI.RESET);
+            System.out.println(ANSI.RED + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
         } else {
-            System.out.println(ANSI.GREEN_BOLD + " Encontrado (" + tipo + "):" + ANSI.RESET);
-            System.out.println(res);
+            System.out
+                    .println(ANSI.GREEN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.GREEN + "║                    REGISTRO ENCONTRADO                 ║" + ANSI.RESET);
+            System.out.println(ANSI.GREEN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+            System.out.printf(ANSI.GREEN + "║ %-54s ║\n" + ANSI.RESET, res.toString());
+            System.out.println(ANSI.GREEN + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
         }
 
-        System.out.println(" Tiempo: " + tiempo + " ns \n");
     }
 
     private String seleccionarAtributo() {

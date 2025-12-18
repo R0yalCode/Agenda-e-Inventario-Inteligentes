@@ -26,4 +26,5 @@ public class SearchStats {
     public void setTiempo(long ns) {
         tiempoNs = ns;
     }
+
 }

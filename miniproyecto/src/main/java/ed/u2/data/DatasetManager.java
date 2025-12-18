@@ -9,7 +9,7 @@ import java.io.File;
 import java.util.*;
 
 /**
- * Autor: R + ChatGPT
+ * Autor: R 
  * Fecha: 2025
  *
  * Maneja TODO el estado del dataset actual:
