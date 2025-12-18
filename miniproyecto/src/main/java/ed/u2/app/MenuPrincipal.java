@@ -8,8 +8,6 @@ import ed.u2.search.SearchEngine;
 import ed.u2.search.SearchStats;
 import ed.u2.sorting.*;
 import ed.u2.stats.OperationStats;
-import ed.u2.stats.SearchStatsManager;
-import ed.u2.stats.SearchStatsRepository;
 import ed.u2.stats.SortingStatsManager;
 import ed.u2.util.ANSI;
 import ed.u2.util.ConsoleUtils;
@@ -73,7 +71,7 @@ public class MenuPrincipal {
                 ConsoleUtils.pausar("");
                 break;
             case "6":
-                submenuEstadisticas();
+                SortingStatsManager.mostrar();
                 ConsoleUtils.pausar("");
                 break;
             case "7":
@@ -95,48 +93,7 @@ public class MenuPrincipal {
         }
     }
 
-    private void submenuEstadisticas() {
-
-    while (true) {
-        System.out.println(ANSI.CYAN_BOLD +
-                "\n=== ESTADÍSTICAS VISUALES ===" + ANSI.RESET);
-
-        System.out.println("1. Estadísticas de ordenación");
-        System.out.println("2. Estadísticas de búsquedas");
-        System.out.println("3. Volver");
-
-        String op = ConsoleUtils.leerLinea("Opción: ");
-
-        switch (op) {
-
-            case "1" -> {
-                SortingStatsManager.mostrar();
-                ConsoleUtils.pausar("");
-            }
-
-            case "2" -> {
-                if (!SearchStatsRepository.hayDatos()) {
-                    System.out.println(
-                        ANSI.RED + "No hay estadísticas de búsquedas aún." + ANSI.RESET
-                    );
-                } else {
-                    SearchStatsManager.mostrar(
-                        SearchStatsRepository.getAll()
-                    );
-                }
-                ConsoleUtils.pausar("");
-            }
-
-            case "3" -> {
-                return;
-            }
-
-            default -> System.out.println(
-                ANSI.RED_BOLD + "Opción inválida." + ANSI.RESET
-            );
-        }
-    }
-}
+    
 
     // ============================================================
     // OPCIÓN 1 – DATASETS OFICIALES

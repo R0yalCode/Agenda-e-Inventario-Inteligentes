@@ -3,7 +3,6 @@ package ed.u2.stats;
 import ed.u2.search.SearchStats;
 import ed.u2.util.ANSI;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class SearchStatsManager {
@@ -11,6 +10,7 @@ public class SearchStatsManager {
     private static final int ALTURA_MAX = 15;
     private static final String BLOQUE = "██";
 
+    // =========================================================
     public static void mostrar(Map<String, SearchStats> statsMap) {
 
         if (statsMap == null || statsMap.isEmpty()) {
@@ -18,16 +18,18 @@ public class SearchStatsManager {
             return;
         }
 
-        System.out.println(ANSI.CYAN_BOLD +
+        System.out.println(
+                ANSI.CYAN_BOLD +
                 "\n=== ESTADÍSTICAS VISUALES DE BÚSQUEDAS ===\n" +
-                ANSI.RESET);
+                ANSI.RESET
+        );
 
         long maxTiempo = statsMap.values().stream()
                 .mapToLong(s -> s.tiempoNs)
                 .max()
                 .orElse(1);
 
-        // ================= HISTOGRAMAS =================
+        // ----- HISTOGRAMA -----
         for (int nivel = ALTURA_MAX; nivel >= 1; nivel--) {
 
             for (SearchStats st : statsMap.values()) {
@@ -43,7 +45,7 @@ public class SearchStatsManager {
             System.out.println();
         }
 
-        // ================= NOMBRES =================
+        // ----- NOMBRES -----
         for (String nombre : statsMap.keySet()) {
             System.out.printf(
                     ANSI.YELLOW_BOLD + "%-12s" + ANSI.RESET + " ",
@@ -52,31 +54,28 @@ public class SearchStatsManager {
         }
         System.out.println("\n");
 
-        // ================= DETALLES =================
+        // ----- DETALLES -----
+        mostrarDetalle(statsMap);
+    }
+
+    // =========================================================
+    private static void mostrarDetalle(Map<String, SearchStats> statsMap) {
+
+        String mejor = "";
+        long mejorTiempo = Long.MAX_VALUE;
+
         for (var e : statsMap.entrySet()) {
 
             SearchStats st = e.getValue();
 
             System.out.println(ANSI.CYAN_BOLD + e.getKey() + ANSI.RESET);
-            System.out.println(" Tiempo (ns):     " + st.tiempoNs);
-            System.out.println(" Comparaciones:   " + st.comparaciones);
-            System.out.println(" Resultados:      " + st.resultadosEncontrados);
+            System.out.println(" Tiempo (ns)     : " + st.tiempoNs);
+            System.out.println(" Comparaciones   : " + st.comparaciones);
+            System.out.println(" Resultados      : " + st.resultadosEncontrados);
             System.out.println();
-        }
 
-        mostrarMejor(statsMap);
-    }
-
-    // =====================================================
-
-    private static void mostrarMejor(Map<String, SearchStats> map) {
-
-        String mejor = "";
-        long mejorTiempo = Long.MAX_VALUE;
-
-        for (var e : map.entrySet()) {
-            if (e.getValue().tiempoNs < mejorTiempo) {
-                mejorTiempo = e.getValue().tiempoNs;
+            if (st.tiempoNs < mejorTiempo) {
+                mejorTiempo = st.tiempoNs;
                 mejor = e.getKey();
             }
         }
@@ -88,9 +87,9 @@ public class SearchStatsManager {
         System.out.println(
                 "╠════════════════════════════════════════════════════════╣");
         System.out.printf(
-                "║ Algoritmo            ║ %-28s ║%n", mejor);
+                "║ Algoritmo              ║ %-28s ║%n", mejor);
         System.out.printf(
-                "║ Tiempo (ns)          ║ %-28d ║%n", mejorTiempo);
+                "║ Tiempo (ns)            ║ %-28d ║%n", mejorTiempo);
         System.out.println(
                 "╚════════════════════════════════════════════════════════╝"
                 + ANSI.RESET);

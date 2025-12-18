@@ -10,9 +10,13 @@ import java.util.Map;
 
 public class SortingStatsManager {
 
-    private static final int ALTURA_MAX = 20;
-    private static final int ANCHO_BARRA = 14;
+    private static final int ALTURA_MAX = 15;
+    private static final int ANCHO_BARRA = 12;
+    private static final String BLOQUE = "██";
 
+    // =========================================================
+    // ENTRADA PRINCIPAL
+    // =========================================================
     public static void mostrar() {
 
         if (!DatasetManager.hayDataset()) {
@@ -20,89 +24,93 @@ public class SortingStatsManager {
             return;
         }
 
-        System.out.println(ANSI.CYAN_BOLD +
-                "\n=== ESTADÍSTICAS VISUALES DE ORDENACIÓN ===\n" + ANSI.RESET);
+        System.out.println(
+                ANSI.CYAN_BOLD +
+                        "\n=== ESTADÍSTICAS VISUALES DE ORDENACIÓN ===\n" +
+                        ANSI.RESET);
 
         Object[] base = DatasetManager.getArray();
 
-        Object[] burbuja = Arrays.copyOf(base, base.length);
-        Object[] seleccion = Arrays.copyOf(base, base.length);
-        Object[] insercion = Arrays.copyOf(base, base.length);
-
         Map<String, OperationStats> stats = new LinkedHashMap<>();
-        stats.put("Burbuja", BubbleSorter.sort((Comparable[]) burbuja, true));
-        stats.put("Selección", SelectionSorter.sort((Comparable[]) seleccion, true));
-        stats.put("Inserción", InsertionSorter.sort((Comparable[]) insercion, true));
 
+        Comparable[] burbuja = Arrays.copyOf(base, base.length, Comparable[].class);
+        Comparable[] seleccion = Arrays.copyOf(base, base.length, Comparable[].class);
+        Comparable[] insercion = Arrays.copyOf(base, base.length, Comparable[].class);
+
+        stats.put("Burbuja", BubbleSorter.sort(burbuja, true));
+        stats.put("Selección", SelectionSorter.sort(seleccion, true));
+        stats.put("Inserción", InsertionSorter.sort(insercion, true));
+
+        lastStats = stats; 
         dibujarHistograma(stats);
+
+    
     }
 
     // =========================================================
     // HISTOGRAMA VERTICAL
     // =========================================================
+    private static void dibujarHistograma(Map<String, OperationStats> stats) {
 
-    private static void dibujarHistograma(Map<String, OperationStats> map) {
-
-        long maxTiempo = map.values().stream()
+        long maxTiempo = stats.values().stream()
                 .mapToLong(OperationStats::getTime)
                 .max()
                 .orElse(1);
 
         Map<String, Integer> alturas = new LinkedHashMap<>();
-
-        for (var e : map.entrySet()) {
+        for (var e : stats.entrySet()) {
             int h = (int) ((double) e.getValue().getTime() / maxTiempo * ALTURA_MAX);
             alturas.put(e.getKey(), Math.max(1, h));
         }
 
         String[] colores = {
-                ANSI.YELLOW_BOLD, // Burbuja
-                ANSI.BLUE_BOLD, // Selección
-                ANSI.RED_BOLD // Inserción
+                ANSI.YELLOW_BOLD,
+                ANSI.BLUE_BOLD,
+                ANSI.RED_BOLD
         };
 
-        // ---------- Dibujar barras ----------
+        // ----- BARRAS -----
         for (int nivel = ALTURA_MAX; nivel >= 1; nivel--) {
-
-            for (int i = 0; i < alturas.size(); i++) {
-                String key = (String) map.keySet().toArray()[i];
-                int h = alturas.get(key);
-
-                if (h >= nivel) {
-                    System.out.print(colores[i] + "█".repeat(ANCHO_BARRA) + ANSI.RESET);
+            int i = 0;
+            for (String key : stats.keySet()) {
+                if (alturas.get(key) >= nivel) {
+                    System.out.print(colores[i] + BLOQUE.repeat(ANCHO_BARRA / 2) + ANSI.RESET);
                 } else {
                     System.out.print(" ".repeat(ANCHO_BARRA));
                 }
                 System.out.print("   ");
+                i++;
             }
             System.out.println();
         }
 
-        // ---------- Línea base ----------
-        System.out.println("─".repeat((ANCHO_BARRA + 3) * alturas.size()));
+        // ----- BASE -----
+        System.out.println("─".repeat((ANCHO_BARRA + 3) * stats.size()));
 
-        // ---------- Nombres ----------
+        // ----- NOMBRES -----
         int i = 0;
-        for (String nombre : map.keySet()) {
-            System.out.print(colores[i++] +
-                    centrar(nombre, ANCHO_BARRA) +
-                    ANSI.RESET + "   ");
+        for (String nombre : stats.keySet()) {
+            System.out.print(
+                    colores[i++] +
+                            centrar(nombre, ANCHO_BARRA) +
+                            ANSI.RESET + "   ");
         }
         System.out.println("\n");
 
-        // ---------- Estadísticas ----------
-        mostrarDetalle(map, colores);
+        mostrarDetalle(stats, colores);
     }
 
     // =========================================================
-
-    private static void mostrarDetalle(Map<String, OperationStats> map, String[] colores) {
+    // DETALLES + MEJOR
+    // =========================================================
+    private static void mostrarDetalle(Map<String, OperationStats> stats, String[] colores) {
 
         String mejor = "";
         long mejorTiempo = Long.MAX_VALUE;
 
         int i = 0;
-        for (var e : map.entrySet()) {
+        for (var e : stats.entrySet()) {
+
             OperationStats st = e.getValue();
 
             System.out.println(colores[i++] + e.getKey() + ANSI.RESET);
@@ -117,21 +125,22 @@ public class SortingStatsManager {
             }
         }
 
-        System.out.println(ANSI.GREEN + "\n╔════════════════════════════════════════════════════════╗");
-        System.out.println("║                MEJOR ALGORITMO DE ORDENACIÓN           ║");
-        System.out.println("╠════════════════════════════════════════════════════════╣");
+        System.out.println(ANSI.GREEN +
+                "\n╔════════════════════════════════════════════════════════╗");
+        System.out.println(
+                "║                MEJOR ALGORITMO DE ORDENACIÓN           ║");
+        System.out.println(
+                "╠════════════════════════════════════════════════════════╣");
         System.out.printf(
-                "║ Algoritmo               ║ %-28s ║\n", mejor);
+                "║ Algoritmo               ║ %-28s ║%n", mejor);
         System.out.printf(
-                "║ Tiempo (ns)             ║ %-28d ║\n", mejorTiempo);
+                "║ Tiempo (ns)             ║ %-28d ║%n", mejorTiempo);
         System.out.println(
                 "╚════════════════════════════════════════════════════════╝"
                         + ANSI.RESET);
-
     }
 
     // =========================================================
-
     private static String centrar(String txt, int ancho) {
         if (txt.length() >= ancho)
             return txt.substring(0, ancho);
@@ -139,4 +148,15 @@ public class SortingStatsManager {
         int right = ancho - txt.length() - left;
         return " ".repeat(left) + txt + " ".repeat(right);
     }
+
+
+
+    // ================= EXPORT SUPPORT =================
+
+private static Map<String, OperationStats> lastStats;
+
+public static Map<String, OperationStats> getLastStats() {
+    return lastStats;
+}
+
 }
