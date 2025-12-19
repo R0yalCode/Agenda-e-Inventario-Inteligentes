@@ -71,6 +71,8 @@ public class MenuPrincipal {
                 ConsoleUtils.pausar("");
                 break;
             case "6":
+                // El usuario solicitó ver estadísticas visuales -> habilitar exportación de estadísticas
+                ExportUtils.setVisualStatsEnabled(true);
                 SortingStatsManager.mostrar();
                 ConsoleUtils.pausar("");
                 break;
@@ -128,6 +130,8 @@ public class MenuPrincipal {
         } else {
             System.out.println(ANSI.RED_BOLD + "Error cargando dataset.\n" + ANSI.RESET);
         }
+        // Actualizar estado en ExportUtils
+        ExportUtils.setDatasetsLoaded(DatasetManager.hayDataset());
     }
 
     // ============================================================
@@ -155,6 +159,8 @@ public class MenuPrincipal {
         } else {
             System.out.println(ANSI.RED_BOLD + "El CSV no coincide con ningún dataset conocido.\n" + ANSI.RESET);
         }
+        // Actualizar estado en ExportUtils
+        ExportUtils.setDatasetsLoaded(DatasetManager.hayDataset());
     }
 
     // ============================================================
@@ -387,6 +393,10 @@ public class MenuPrincipal {
         Object res = DatasetManager.buscarPorId(id);
         long t1 = System.nanoTime();
 
+        // Rellenar estadísticas básicas (DatasetManager.buscarPorId no las actualiza)
+        stats.resultadosEncontrados = (res == null) ? 0 : 1;
+        stats.setTiempo(t1 - t0);
+
         if (res == null) {
             System.out.println(ANSI.RED + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
             System.out.println(ANSI.RED + "║                NO SE ENCONTRO EL REGISTRO              ║" + ANSI.RESET);
@@ -410,6 +420,7 @@ public class MenuPrincipal {
             System.out.printf(ANSI.CYAN + "║ Tiempo (ns)          ║ %-28d    ║\n" + ANSI.RESET, stats.tiempoNs);
             System.out.println(ANSI.CYAN + "╚══════════════════════╩═════════════════════════════════╝" + ANSI.RESET);
         }
+    
 
         // Registrar en historial
         HistoryManager.log(

@@ -5,6 +5,7 @@ import ed.u2.io.CsvLoader;
 import ed.u2.model.*;
 import ed.u2.sll.SinglyLinkedList;
 import ed.u2.stats.SortingStatsManager;
+import ed.u2.io.ExportUtils;
 
 import java.io.File;
 import java.util.*;
@@ -111,6 +112,8 @@ static {
         arrayActual = null;
         sllActual = null;
         rutaActual = null;
+        // Inform ExportUtils that there is no dataset loaded
+        ExportUtils.setDatasetsLoaded(false);
     }
 
     // ============================================================

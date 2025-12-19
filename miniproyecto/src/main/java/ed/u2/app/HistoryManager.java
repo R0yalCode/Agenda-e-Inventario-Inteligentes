@@ -176,12 +176,12 @@ public class HistoryManager {
                 }
 
                 System.out.println(ANSI.CYAN + "\nMostrando " + (desde + 1) + " - " + hasta + " de " + total + ANSI.RESET);
-                System.out.println("[N]ext page  [P]rev page  [F]iltrar  [E]xportar  [C]lear  [Q]uit");
+                System.out.println("[S]iguiente pagina  [P]agina anterior  [F]iltrar  [E]xportar  [L]impiar  [R]egresar");
 
                 String opt = ConsoleUtils.leerLinea("Opción:").trim().toUpperCase();
 
                 switch (opt) {
-                    case "N":
+                    case "S":
                         if (pagina < paginas) pagina++; else System.out.println(ANSI.YELLOW + "Ya estás en la última página." + ANSI.RESET);
                         break;
                     case "P":
@@ -195,7 +195,7 @@ public class HistoryManager {
                         if (ruta.trim().isEmpty()) ruta = HISTORY_PATH.toString();
                         exportarCsv(ruta);
                         break;
-                    case "C":
+                    case "L":
                         String conf = ConsoleUtils.leerLinea(ANSI.RED + "¿Eliminar todo el historial? (s/N):" + ANSI.RESET);
                         if (conf.equalsIgnoreCase("s")) {
                             limpiar();
@@ -203,7 +203,7 @@ public class HistoryManager {
                             return;
                         }
                         break;
-                    case "Q":
+                    case "R":
                         return;
                     default:
                         System.out.println(ANSI.YELLOW + "Opción no válida." + ANSI.RESET);
