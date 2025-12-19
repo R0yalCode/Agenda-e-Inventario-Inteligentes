@@ -1,0 +1,501 @@
+id;insumo;stock
+ITEM-0001;Agujas Hipodérmicas 21G;500
+ITEM-0002;Gasas 5x5;499
+ITEM-0003;Guante Nitrilo Talla M;498
+ITEM-0004;Test Glucosa Tiras x50;497
+ITEM-0005;Antiséptico Povidona 10% 120ml;496
+ITEM-0006;Solución Salina 0.9% 1L;495
+ITEM-0007;Catéter 18G;494
+ITEM-0008;Vendas Elásticas 10cm;493
+ITEM-0009;Test Glucosa Tiras x50;492
+ITEM-0010;Gasas 10x10;491
+ITEM-0011;Gel Ultrasónico 250ml;490
+ITEM-0012;Test Glucosa Tiras x50;489
+ITEM-0013;Collar isabelino Talla L;488
+ITEM-0014;Clorhexidina 0.05% 1L;487
+ITEM-0015;Suturas Nylon 3-0;486
+ITEM-0016;Cubre Bocas Reutilizable;485
+ITEM-0017;Guante Nitrilo Talla L;484
+ITEM-0018;Guante Nitrilo Talla M;483
+ITEM-0019;Clorhexidina 0.05% 1L;482
+ITEM-0020;Catéter 22G;481
+ITEM-0021;Catéter 18G;480
+ITEM-0022;Collar isabelino Talla S;479
+ITEM-0023;Suturas Nylon 4-0;478
+ITEM-0024;Guante Nitrilo Talla M;477
+ITEM-0025;Guantes de Látex Talla M;476
+ITEM-0026;Catéter 20G;475
+ITEM-0027;Limpia Pisos 1L;474
+ITEM-0028;Agujas Hipodérmicas 23G;473
+ITEM-0029;Toallas Desechables;472
+ITEM-0030;Collar isabelino Talla L;471
+ITEM-0031;Compresas Estériles;470
+ITEM-0032;Catéter 18G;469
+ITEM-0033;Bolsas Biohazard 30L;468
+ITEM-0034;Suturas Nylon 3-0;467
+ITEM-0035;Antiséptico Povidona 10% 120ml;466
+ITEM-0036;Guante Nitrilo Talla S;465
+ITEM-0037;Hisopos Estériles;464
+ITEM-0038;Jeringa 10ml;463
+ITEM-0039;Toallas Desechables;462
+ITEM-0040;Cubre Bocas Reutilizable;461
+ITEM-0041;Cinta Micropore 2.5cm;460
+ITEM-0042;Antiséptico Povidona 10% 120ml;459
+ITEM-0043;Jeringa 5ml;458
+ITEM-0044;Catéter 22G;457
+ITEM-0045;Hisopos Estériles;456
+ITEM-0046;Cinta Micropore 2.5cm;455
+ITEM-0047;Gasas 10x10;454
+ITEM-0048;Clorhexidina 0.05% 1L;453
+ITEM-0049;Bisturí #11;452
+ITEM-0050;Gasas 10x10;451
+ITEM-0051;Mascarilla Quirúrgica;450
+ITEM-0052;Mascarilla Quirúrgica;449
+ITEM-0053;Suturas Nylon 4-0;448
+ITEM-0054;Solución Hartmann 1L;447
+ITEM-0055;Guante Nitrilo Talla L;446
+ITEM-0056;Guantes Desechables Vinilo M;445
+ITEM-0057;Bolsas Biohazard 60L;444
+ITEM-0058;Collar isabelino Talla L;443
+ITEM-0059;Gasas 5x5;442
+ITEM-0060;Bisturí #11;441
+ITEM-0061;Clorhexidina 0.05% 1L;440
+ITEM-0062;Guantes de Látex Talla M;439
+ITEM-0063;Termómetro Digital;438
+ITEM-0064;Agujas Hipodérmicas 21G;437
+ITEM-0065;Suturas Poliglactina 910 3-0;436
+ITEM-0066;Bisturí #10;435
+ITEM-0067;Guantes de Látex Talla L;434
+ITEM-0068;Catéter 20G;433
+ITEM-0069;Limpia Pisos 1L;432
+ITEM-0070;Alcohol 70% 500ml;431
+ITEM-0071;Guante Nitrilo Talla L;430
+ITEM-0072;Cánula Nasal;429
+ITEM-0073;Catéter 18G;428
+ITEM-0074;Termómetro Digital;427
+ITEM-0075;Clorhexidina 0.05% 1L;426
+ITEM-0076;Catéter 18G;425
+ITEM-0077;Gasas 10x10;424
+ITEM-0078;Bisturí #11;423
+ITEM-0079;Antiséptico Povidona 10% 120ml;422
+ITEM-0080;Bolsas Biohazard 60L;421
+ITEM-0081;Agujas Hipodérmicas 21G;420
+ITEM-0082;Bisturí #10;419
+ITEM-0083;Jeringa 10ml;418
+ITEM-0084;Bisturí #10;417
+ITEM-0085;Mascarilla Quirúrgica;416
+ITEM-0086;Catéter 22G;415
+ITEM-0087;Cánula Nasal;414
+ITEM-0088;Antiséptico Povidona 10% 120ml;413
+ITEM-0089;Toallas Desechables;412
+ITEM-0090;Gel Ultrasónico 250ml;411
+ITEM-0091;Agujas Hipodérmicas 23G;410
+ITEM-0092;Alcohol 70% 500ml;409
+ITEM-0093;Suturas Nylon 4-0;408
+ITEM-0094;Agujas Hipodérmicas 21G;407
+ITEM-0095;Jeringa 10ml;406
+ITEM-0096;Collar isabelino Talla L;405
+ITEM-0097;Guantes Desechables Vinilo M;404
+ITEM-0098;Solución Salina 0.9% 1L;403
+ITEM-0099;Jeringa 10ml;402
+ITEM-0100;Bolsas Biohazard 60L;401
+ITEM-0101;Bisturí #11;400
+ITEM-0102;Antiséptico Povidona 10% 120ml;399
+ITEM-0103;Agujas Hipodérmicas 21G;398
+ITEM-0104;Toallas Desechables;397
+ITEM-0105;Guantes de Látex Talla M;396
+ITEM-0106;Catéter 18G;395
+ITEM-0107;Gel Ultrasónico 250ml;394
+ITEM-0108;Esparadrapo 5cm x 10m;393
+ITEM-0109;Alcohol 70% 1L;392
+ITEM-0110;Catéter 18G;391
+ITEM-0111;Guante Nitrilo Talla L;390
+ITEM-0112;Esparadrapo 5cm x 10m;389
+ITEM-0113;Bisturí #23;388
+ITEM-0114;Antiséptico Povidona 10% 120ml;387
+ITEM-0115;Alcohol 70% 500ml;386
+ITEM-0116;Catéter 22G;385
+ITEM-0117;Guantes de Látex Talla L;384
+ITEM-0118;Limpia Pisos 1L;383
+ITEM-0119;Esparadrapo 5cm x 10m;382
+ITEM-0120;Catéter 22G;381
+ITEM-0121;Agujas Hipodérmicas 23G;380
+ITEM-0122;Lubricante Oftálmico 10ml;379
+ITEM-0123;Bisturí #23;378
+ITEM-0124;Agujas Hipodérmicas 23G;377
+ITEM-0125;Bolsas Biohazard 60L;376
+ITEM-0126;Jeringa 5ml;375
+ITEM-0127;Solución Hartmann 1L;374
+ITEM-0128;Vendas Elásticas 10cm;373
+ITEM-0129;Solución Salina 0.9% 1L;372
+ITEM-0130;Test Glucosa Tiras x50;371
+ITEM-0131;Guantes de Látex Talla M;370
+ITEM-0132;Collar isabelino Talla L;369
+ITEM-0133;Solución Hartmann 1L;368
+ITEM-0134;Test Glucosa Tiras x50;367
+ITEM-0135;Suturas Nylon 3-0;366
+ITEM-0136;Cubre Bocas Reutilizable;365
+ITEM-0137;Suturas Nylon 3-0;364
+ITEM-0138;Bisturí #23;363
+ITEM-0139;Bisturí #10;362
+ITEM-0140;Catéter 18G;361
+ITEM-0141;Vendas Elásticas 10cm;360
+ITEM-0142;Collar isabelino Talla S;359
+ITEM-0143;Lubricante Oftálmico 10ml;358
+ITEM-0144;Clorhexidina 0.05% 1L;357
+ITEM-0145;Hisopos Estériles;356
+ITEM-0146;Alcohol 70% 1L;355
+ITEM-0147;Gasas 5x5;354
+ITEM-0148;Jeringa 5ml;353
+ITEM-0149;Agujas Hipodérmicas 21G;352
+ITEM-0150;Jeringa 10ml;351
+ITEM-0151;Gel Ultrasónico 250ml;350
+ITEM-0152;Cubre Bocas Reutilizable;349
+ITEM-0153;Suturas Nylon 4-0;348
+ITEM-0154;Alcohol 70% 500ml;347
+ITEM-0155;Bisturí #11;346
+ITEM-0156;Bisturí #11;345
+ITEM-0157;Suturas Nylon 4-0;344
+ITEM-0158;Bolsas Biohazard 60L;343
+ITEM-0159;Collar isabelino Talla M;342
+ITEM-0160;Solución Hartmann 1L;341
+ITEM-0161;Guantes de Látex Talla M;340
+ITEM-0162;Guante Nitrilo Talla S;339
+ITEM-0163;Gel Ultrasónico 250ml;338
+ITEM-0164;Guantes Desechables Vinilo M;337
+ITEM-0165;Gasas 5x5;336
+ITEM-0166;Gel Ultrasónico 250ml;335
+ITEM-0167;Collar isabelino Talla L;334
+ITEM-0168;Hisopos Estériles;333
+ITEM-0169;Antiséptico Povidona 10% 120ml;332
+ITEM-0170;Agujas Hipodérmicas 23G;331
+ITEM-0171;Cinta Micropore 2.5cm;330
+ITEM-0172;Gasas 5x5;329
+ITEM-0173;Termómetro Digital;328
+ITEM-0174;Cubre Bocas Reutilizable;327
+ITEM-0175;Jeringa 10ml;326
+ITEM-0176;Bolsas Biohazard 60L;325
+ITEM-0177;Guante Nitrilo Talla S;324
+ITEM-0178;Guantes Desechables Vinilo M;323
+ITEM-0179;Guantes Desechables Vinilo M;322
+ITEM-0180;Solución Hartmann 1L;321
+ITEM-0181;Collar isabelino Talla S;320
+ITEM-0182;Hisopos Estériles;319
+ITEM-0183;Jeringa 20ml;318
+ITEM-0184;Collar isabelino Talla S;317
+ITEM-0185;Gasas 10x10;316
+ITEM-0186;Agujas Hipodérmicas 21G;315
+ITEM-0187;Tijeras de Vendaje;314
+ITEM-0188;Agujas Hipodérmicas 21G;313
+ITEM-0189;Collar isabelino Talla S;312
+ITEM-0190;Suturas Nylon 4-0;311
+ITEM-0191;Catéter 20G;310
+ITEM-0192;Jeringa 5ml;309
+ITEM-0193;Bisturí #10;308
+ITEM-0194;Hisopos Estériles;307
+ITEM-0195;Jeringa 10ml;306
+ITEM-0196;Collar isabelino Talla L;305
+ITEM-0197;Collar isabelino Talla M;304
+ITEM-0198;Guante Nitrilo Talla S;303
+ITEM-0199;Suturas Nylon 4-0;302
+ITEM-0200;Esparadrapo 5cm x 10m;301
+ITEM-0201;Lubricante Oftálmico 10ml;300
+ITEM-0202;Guante Nitrilo Talla M;299
+ITEM-0203;Gasas 5x5;298
+ITEM-0204;Bisturí #10;297
+ITEM-0205;Tijeras de Vendaje;296
+ITEM-0206;Solución Salina 0.9% 1L;295
+ITEM-0207;Alcohol 70% 1L;294
+ITEM-0208;Solución Salina 0.9% 1L;293
+ITEM-0209;Guantes de Látex Talla L;292
+ITEM-0210;Clorhexidina 0.05% 1L;291
+ITEM-0211;Clorhexidina 0.05% 1L;290
+ITEM-0212;Guantes Desechables Vinilo M;289
+ITEM-0213;Lubricante Oftálmico 10ml;288
+ITEM-0214;Alcohol 70% 500ml;287
+ITEM-0215;Hisopos Estériles;286
+ITEM-0216;Collar isabelino Talla L;285
+ITEM-0217;Vendas Elásticas 10cm;284
+ITEM-0218;Vendas Elásticas 10cm;283
+ITEM-0219;Cánula Nasal;282
+ITEM-0220;Desinfectante de Superficies 1L;281
+ITEM-0221;Guantes de Látex Talla M;280
+ITEM-0222;Jeringa 10ml;279
+ITEM-0223;Solución Hartmann 1L;278
+ITEM-0224;Collar isabelino Talla M;277
+ITEM-0225;Suturas Nylon 4-0;276
+ITEM-0226;Cubre Bocas Reutilizable;275
+ITEM-0227;Catéter 22G;274
+ITEM-0228;Collar isabelino Talla L;273
+ITEM-0229;Hisopos Estériles;272
+ITEM-0230;Guantes Desechables Vinilo M;271
+ITEM-0231;Toallas Desechables;270
+ITEM-0232;Catéter 20G;269
+ITEM-0233;Limpia Pisos 1L;268
+ITEM-0234;Tijeras de Vendaje;267
+ITEM-0235;Bisturí #23;266
+ITEM-0236;Cánula Nasal;265
+ITEM-0237;Agujas Hipodérmicas 23G;264
+ITEM-0238;Bisturí #10;263
+ITEM-0239;Bolsas Biohazard 30L;262
+ITEM-0240;Collar isabelino Talla M;261
+ITEM-0241;Bolsas Biohazard 30L;260
+ITEM-0242;Gasas 5x5;259
+ITEM-0243;Solución Salina 0.9% 1L;258
+ITEM-0244;Catéter 18G;257
+ITEM-0245;Alcohol 70% 500ml;256
+ITEM-0246;Cinta Micropore 2.5cm;255
+ITEM-0247;Guante Nitrilo Talla M;254
+ITEM-0248;Suturas Nylon 3-0;253
+ITEM-0249;Guantes de Látex Talla M;252
+ITEM-0250;Catéter 18G;251
+ITEM-0251;Suturas Nylon 3-0;250
+ITEM-0252;Catéter 18G;249
+ITEM-0253;Guante Nitrilo Talla S;248
+ITEM-0254;Alcohol 70% 500ml;247
+ITEM-0255;Limpia Pisos 1L;246
+ITEM-0256;Agujas Hipodérmicas 21G;245
+ITEM-0257;Alcohol 70% 1L;244
+ITEM-0258;Catéter 18G;243
+ITEM-0259;Alcohol 70% 500ml;242
+ITEM-0260;Guante Nitrilo Talla L;241
+ITEM-0261;Cinta Micropore 2.5cm;240
+ITEM-0262;Alcohol 70% 500ml;239
+ITEM-0263;Collar isabelino Talla S;238
+ITEM-0264;Solución Salina 0.9% 1L;237
+ITEM-0265;Antiséptico Povidona 10% 120ml;236
+ITEM-0266;Cánula Nasal;235
+ITEM-0267;Lubricante Oftálmico 10ml;234
+ITEM-0268;Catéter 22G;233
+ITEM-0269;Collar isabelino Talla L;232
+ITEM-0270;Vendas Elásticas 10cm;231
+ITEM-0271;Guantes Desechables Vinilo M;230
+ITEM-0272;Guantes de Látex Talla L;229
+ITEM-0273;Guantes de Látex Talla L;228
+ITEM-0274;Desinfectante de Superficies 1L;227
+ITEM-0275;Solución Salina 0.9% 1L;226
+ITEM-0276;Desinfectante de Superficies 1L;225
+ITEM-0277;Compresas Estériles;224
+ITEM-0278;Catéter 20G;223
+ITEM-0279;Gasas 10x10;222
+ITEM-0280;Gasas 10x10;221
+ITEM-0281;Cánula Nasal;220
+ITEM-0282;Cubre Bocas Reutilizable;219
+ITEM-0283;Mascarilla Quirúrgica;218
+ITEM-0284;Cubre Bocas Reutilizable;217
+ITEM-0285;Compresas Estériles;216
+ITEM-0286;Bolsas Biohazard 60L;215
+ITEM-0287;Guantes Desechables Vinilo M;214
+ITEM-0288;Alcohol 70% 1L;213
+ITEM-0289;Gel Ultrasónico 250ml;212
+ITEM-0290;Agujas Hipodérmicas 23G;211
+ITEM-0291;Agujas Hipodérmicas 23G;210
+ITEM-0292;Gasas 10x10;209
+ITEM-0293;Alcohol 70% 1L;208
+ITEM-0294;Bisturí #23;207
+ITEM-0295;Guantes Desechables Vinilo M;206
+ITEM-0296;Cinta Micropore 2.5cm;205
+ITEM-0297;Gasas 10x10;204
+ITEM-0298;Solución Salina 0.9% 1L;203
+ITEM-0299;Catéter 20G;202
+ITEM-0300;Catéter 20G;201
+ITEM-0301;Collar isabelino Talla L;200
+ITEM-0302;Bolsas Biohazard 30L;199
+ITEM-0303;Vendas Elásticas 10cm;198
+ITEM-0304;Cubre Bocas Reutilizable;197
+ITEM-0305;Jeringa 20ml;196
+ITEM-0306;Antiséptico Povidona 10% 120ml;195
+ITEM-0307;Bolsas Biohazard 60L;194
+ITEM-0308;Solución Salina 0.9% 1L;193
+ITEM-0309;Alcohol 70% 500ml;192
+ITEM-0310;Bolsas Biohazard 30L;191
+ITEM-0311;Guantes de Látex Talla M;190
+ITEM-0312;Gasas 10x10;189
+ITEM-0313;Alcohol 70% 1L;188
+ITEM-0314;Agujas Hipodérmicas 23G;187
+ITEM-0315;Collar isabelino Talla L;186
+ITEM-0316;Guante Nitrilo Talla S;185
+ITEM-0317;Clorhexidina 0.05% 1L;184
+ITEM-0318;Hisopos Estériles;183
+ITEM-0319;Solución Salina 0.9% 1L;182
+ITEM-0320;Jeringa 10ml;181
+ITEM-0321;Compresas Estériles;180
+ITEM-0322;Lubricante Oftálmico 10ml;179
+ITEM-0323;Desinfectante de Superficies 1L;178
+ITEM-0324;Catéter 22G;177
+ITEM-0325;Bisturí #23;176
+ITEM-0326;Alcohol 70% 1L;175
+ITEM-0327;Jeringa 10ml;174
+ITEM-0328;Bisturí #11;173
+ITEM-0329;Guante Nitrilo Talla S;172
+ITEM-0330;Bisturí #11;171
+ITEM-0331;Solución Hartmann 1L;170
+ITEM-0332;Bolsas Biohazard 60L;169
+ITEM-0333;Termómetro Digital;168
+ITEM-0334;Cubre Bocas Reutilizable;167
+ITEM-0335;Toallas Desechables;166
+ITEM-0336;Guantes Desechables Vinilo M;165
+ITEM-0337;Guantes de Látex Talla M;164
+ITEM-0338;Cánula Nasal;163
+ITEM-0339;Limpia Pisos 1L;162
+ITEM-0340;Lubricante Oftálmico 10ml;161
+ITEM-0341;Jeringa 5ml;160
+ITEM-0342;Catéter 20G;159
+ITEM-0343;Termómetro Digital;158
+ITEM-0344;Catéter 22G;157
+ITEM-0345;Alcohol 70% 1L;156
+ITEM-0346;Suturas Nylon 3-0;155
+ITEM-0347;Test Glucosa Tiras x50;154
+ITEM-0348;Collar isabelino Talla L;153
+ITEM-0349;Alcohol 70% 1L;152
+ITEM-0350;Test Glucosa Tiras x50;151
+ITEM-0351;Esparadrapo 5cm x 10m;150
+ITEM-0352;Alcohol 70% 1L;149
+ITEM-0353;Alcohol 70% 1L;148
+ITEM-0354;Suturas Nylon 3-0;147
+ITEM-0355;Desinfectante de Superficies 1L;146
+ITEM-0356;Collar isabelino Talla S;145
+ITEM-0357;Collar isabelino Talla M;144
+ITEM-0358;Jeringa 10ml;143
+ITEM-0359;Alcohol 70% 1L;142
+ITEM-0360;Collar isabelino Talla S;141
+ITEM-0361;Clorhexidina 0.05% 1L;140
+ITEM-0362;Jeringa 20ml;139
+ITEM-0363;Alcohol 70% 500ml;138
+ITEM-0364;Suturas Nylon 4-0;137
+ITEM-0365;Alcohol 70% 500ml;136
+ITEM-0366;Gel Ultrasónico 250ml;135
+ITEM-0367;Solución Salina 0.9% 1L;134
+ITEM-0368;Bisturí #23;133
+ITEM-0369;Gasas 5x5;132
+ITEM-0370;Guantes de Látex Talla L;131
+ITEM-0371;Solución Salina 0.9% 1L;130
+ITEM-0372;Suturas Nylon 3-0;129
+ITEM-0373;Suturas Nylon 4-0;128
+ITEM-0374;Guante Nitrilo Talla L;127
+ITEM-0375;Suturas Poliglactina 910 3-0;126
+ITEM-0376;Clorhexidina 0.05% 1L;125
+ITEM-0377;Compresas Estériles;124
+ITEM-0378;Cánula Nasal;123
+ITEM-0379;Suturas Nylon 3-0;122
+ITEM-0380;Guantes de Látex Talla L;121
+ITEM-0381;Collar isabelino Talla M;120
+ITEM-0382;Esparadrapo 5cm x 10m;119
+ITEM-0383;Solución Hartmann 1L;118
+ITEM-0384;Catéter 22G;117
+ITEM-0385;Cánula Nasal;116
+ITEM-0386;Limpia Pisos 1L;115
+ITEM-0387;Esparadrapo 5cm x 10m;114
+ITEM-0388;Solución Salina 0.9% 1L;113
+ITEM-0389;Solución Hartmann 1L;112
+ITEM-0390;Bisturí #23;111
+ITEM-0391;Vendas Elásticas 10cm;110
+ITEM-0392;Cánula Nasal;109
+ITEM-0393;Agujas Hipodérmicas 23G;108
+ITEM-0394;Tijeras de Vendaje;107
+ITEM-0395;Bolsas Biohazard 60L;106
+ITEM-0396;Esparadrapo 5cm x 10m;105
+ITEM-0397;Hisopos Estériles;104
+ITEM-0398;Alcohol 70% 500ml;103
+ITEM-0399;Guante Nitrilo Talla S;102
+ITEM-0400;Bolsas Biohazard 60L;101
+ITEM-0401;Suturas Poliglactina 910 3-0;100
+ITEM-0402;Guantes de Látex Talla L;99
+ITEM-0403;Gasas 10x10;98
+ITEM-0404;Alcohol 70% 500ml;97
+ITEM-0405;Collar isabelino Talla L;96
+ITEM-0406;Catéter 22G;95
+ITEM-0407;Collar isabelino Talla S;94
+ITEM-0408;Solución Hartmann 1L;93
+ITEM-0409;Vendas Elásticas 10cm;92
+ITEM-0410;Mascarilla Quirúrgica;91
+ITEM-0411;Alcohol 70% 500ml;90
+ITEM-0412;Solución Salina 0.9% 1L;89
+ITEM-0413;Bisturí #10;88
+ITEM-0414;Termómetro Digital;87
+ITEM-0415;Jeringa 10ml;86
+ITEM-0416;Bolsas Biohazard 30L;85
+ITEM-0417;Collar isabelino Talla L;84
+ITEM-0418;Limpia Pisos 1L;83
+ITEM-0419;Tijeras de Vendaje;82
+ITEM-0420;Suturas Poliglactina 910 3-0;81
+ITEM-0421;Agujas Hipodérmicas 23G;80
+ITEM-0422;Collar isabelino Talla M;79
+ITEM-0423;Guante Nitrilo Talla S;78
+ITEM-0424;Cánula Nasal;77
+ITEM-0425;Guantes de Látex Talla M;76
+ITEM-0426;Tijeras de Vendaje;75
+ITEM-0427;Cánula Nasal;74
+ITEM-0428;Gasas 10x10;73
+ITEM-0429;Vendas Elásticas 10cm;72
+ITEM-0430;Solución Hartmann 1L;71
+ITEM-0431;Gasas 5x5;70
+ITEM-0432;Gasas 10x10;69
+ITEM-0433;Test Glucosa Tiras x50;68
+ITEM-0434;Guantes de Látex Talla M;67
+ITEM-0435;Jeringa 5ml;66
+ITEM-0436;Antiséptico Povidona 10% 120ml;65
+ITEM-0437;Termómetro Digital;64
+ITEM-0438;Suturas Nylon 4-0;63
+ITEM-0439;Catéter 22G;62
+ITEM-0440;Limpia Pisos 1L;61
+ITEM-0441;Cinta Micropore 2.5cm;60
+ITEM-0442;Catéter 22G;59
+ITEM-0443;Gel Ultrasónico 250ml;58
+ITEM-0444;Agujas Hipodérmicas 21G;57
+ITEM-0445;Solución Hartmann 1L;56
+ITEM-0446;Collar isabelino Talla S;55
+ITEM-0447;Lubricante Oftálmico 10ml;54
+ITEM-0448;Solución Hartmann 1L;53
+ITEM-0449;Alcohol 70% 1L;52
+ITEM-0450;Clorhexidina 0.05% 1L;51
+ITEM-0451;Agujas Hipodérmicas 21G;50
+ITEM-0452;Cubre Bocas Reutilizable;49
+ITEM-0453;Antiséptico Povidona 10% 120ml;48
+ITEM-0454;Guante Nitrilo Talla L;47
+ITEM-0455;Guante Nitrilo Talla S;46
+ITEM-0456;Cinta Micropore 2.5cm;45
+ITEM-0457;Vendas Elásticas 10cm;44
+ITEM-0458;Agujas Hipodérmicas 21G;43
+ITEM-0459;Solución Hartmann 1L;42
+ITEM-0460;Jeringa 10ml;41
+ITEM-0461;Test Glucosa Tiras x50;40
+ITEM-0462;Bolsas Biohazard 30L;39
+ITEM-0463;Guantes de Látex Talla M;38
+ITEM-0464;Limpia Pisos 1L;37
+ITEM-0465;Cubre Bocas Reutilizable;36
+ITEM-0466;Guantes de Látex Talla M;35
+ITEM-0467;Guante Nitrilo Talla S;34
+ITEM-0468;Gasas 5x5;33
+ITEM-0469;Alcohol 70% 500ml;32
+ITEM-0470;Toallas Desechables;31
+ITEM-0471;Jeringa 5ml;30
+ITEM-0472;Collar isabelino Talla L;29
+ITEM-0473;Guante Nitrilo Talla L;28
+ITEM-0474;Bisturí #10;27
+ITEM-0475;Suturas Nylon 3-0;26
+ITEM-0476;Guantes de Látex Talla M;25
+ITEM-0477;Jeringa 5ml;24
+ITEM-0478;Cubre Bocas Reutilizable;23
+ITEM-0479;Vendas Elásticas 10cm;22
+ITEM-0480;Guante Nitrilo Talla L;21
+ITEM-0481;Tijeras de Vendaje;20
+ITEM-0482;Bisturí #10;19
+ITEM-0483;Guante Nitrilo Talla L;18
+ITEM-0484;Mascarilla Quirúrgica;17
+ITEM-0485;Catéter 22G;16
+ITEM-0486;Gel Ultrasónico 250ml;15
+ITEM-0487;Solución Salina 0.9% 1L;14
+ITEM-0488;Cánula Nasal;13
+ITEM-0489;Gasas 10x10;12
+ITEM-0490;Mascarilla Quirúrgica;11
+ITEM-0491;Guantes de Látex Talla M;10
+ITEM-0492;Compresas Estériles;9
+ITEM-0493;Suturas Poliglactina 910 3-0;8
+ITEM-0494;Test Glucosa Tiras x50;7
+ITEM-0495;Jeringa 5ml;6
+ITEM-0496;Solución Salina 0.9% 1L;5
+ITEM-0497;Jeringa 10ml;4
+ITEM-0498;Jeringa 20ml;3
+ITEM-0499;Compresas Estériles;2
+ITEM-0500;Guante Nitrilo Talla M;1

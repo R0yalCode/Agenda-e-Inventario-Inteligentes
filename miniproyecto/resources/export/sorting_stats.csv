@@ -1,0 +1,6 @@
+Algoritmo,Tiempo(ns),Comparaciones,Intercambios
+Burbuja,51200,99,0
+Selección,388900,4950,0
+Inserción,52100,99,0
+
+Mejor Algoritmo: Burbuja con Tiempo(ns): 51200
