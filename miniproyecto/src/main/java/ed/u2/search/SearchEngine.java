@@ -5,48 +5,46 @@ import ed.u2.model.*;
 import ed.u2.sll.Node;
 import ed.u2.sll.SinglyLinkedList;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import ed.u2.util.Holder;
 
-
 public class SearchEngine {
 
-   // ============================================================
-// 1. BÚSQUEDA LINEAL POR ID + ESTADÍSTICAS
-// ============================================================
-public static Object buscarPorIdLineal(String id, SearchStats st) {
+    // ============================================================
+    // 1. BÚSQUEDA LINEAL POR ID + ESTADÍSTICAS
+    // ============================================================
+    public static Object buscarPorIdLineal(String id, SearchStats st) {
 
-    long t0 = System.nanoTime();
+        long t0 = System.nanoTime();
 
-    Object[] arr = DatasetManager.getArray();
-    if (arr == null) {
+        Object[] arr = DatasetManager.getArray();
+        if (arr == null) {
+            st.setTiempo(System.nanoTime() - t0);
+            return null;
+        }
+
+        String buscado = id.trim().toUpperCase();
+
+        for (Object o : arr) {
+            st.addComparacion(); // 🔹 comparación real
+
+            if (getId(o).equalsIgnoreCase(buscado)) {
+                st.addResultado(); // 🔹 encontrado
+                st.setTiempo(System.nanoTime() - t0);
+                return o;
+            }
+        }
+
+        // No encontrado
         st.setTiempo(System.nanoTime() - t0);
         return null;
     }
 
-    String buscado = id.trim().toUpperCase();
-
-    for (Object o : arr) {
-        st.addComparacion(); // 🔹 comparación real
-
-        if (getId(o).equalsIgnoreCase(buscado)) {
-            st.addResultado(); // 🔹 encontrado
-            st.setTiempo(System.nanoTime() - t0);
-            return o;
-        }
-    }
-
-    // No encontrado
-    st.setTiempo(System.nanoTime() - t0);
-    return null;
-}
-
-
-
-        // ============================================================
+    // ============================================================
     // 2. LINEAL CON CENTINELA
     // ============================================================
     public static Object buscarPorIdCentinela(String idBuscado) {
@@ -82,7 +80,6 @@ public static Object buscarPorIdLineal(String id, SearchStats st) {
         // Caso encontrado
         return copia[i];
     }
-
 
     // ============================================================
     // 2. LINEAL CON CENTINELA + ESTADÍSTICAS
@@ -122,7 +119,7 @@ public static Object buscarPorIdLineal(String id, SearchStats st) {
         long t1 = System.nanoTime();
         st.setTiempo(t1 - t0);
 
-        return new SearchResult(resultado, st );
+        return new SearchResult(resultado, st);
     }
 
     // ============================================================
@@ -235,6 +232,55 @@ public static Object buscarPorIdLineal(String id, SearchStats st) {
 
         return last;
     }
+
+
+   public static SearchResult binarySearchPorFecha(LocalDateTime fecha, SearchStats st) {
+
+    // Mensaje claro si no está ordenado y salida temprana (mantener st consistente)
+    if (!DatasetManager.isOrdenadoPorFecha()) {
+        System.out.println(ed.u2.util.ANSI.RED + "Debe ordenar las citas por fecha antes de usar búsqueda binaria" + ed.u2.util.ANSI.RESET);
+        if (st != null) {
+            st.reset();
+            st.setTiempo(0);
+        }
+        return new SearchResult(null, st);
+    }
+
+    Object[] raw = DatasetManager.getArray();
+    if (raw == null || raw.length == 0) {
+        if (st != null) {
+            st.reset();
+            st.setTiempo(0);
+        }
+        return new SearchResult(null, st);
+    }
+
+    Cita[] arr = (raw instanceof Cita[]) ? (Cita[]) raw : Arrays.copyOf(raw, raw.length, Cita[].class);
+
+    long t0 = System.nanoTime();
+    int low = 0, high = arr.length - 1;
+
+    while (low <= high) {
+        if (st != null) st.addComparacion();
+
+        int mid = (low + high) >>> 1;
+        int cmp = arr[mid].getFechaHora().compareTo(fecha);
+
+        if (cmp == 0) {
+            if (st != null) {
+                st.addResultado();
+                st.setTiempo(System.nanoTime() - t0);
+            }
+            return new SearchResult(arr[mid], st);
+        }
+        if (cmp < 0) low = mid + 1;
+        else high = mid - 1;
+    }
+
+    if (st != null) st.setTiempo(System.nanoTime() - t0);
+    return new SearchResult(null, st);
+}
+
 
     // ============================================================
     // 6. BÚSQUEDA BINARIA ITERATIVA

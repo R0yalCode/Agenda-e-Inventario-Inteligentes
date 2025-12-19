@@ -13,6 +13,7 @@ import ed.u2.util.ANSI;
 import ed.u2.util.ConsoleUtils;
 import ed.u2.util.Holder;
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class MenuPrincipal {
@@ -238,22 +239,39 @@ public class MenuPrincipal {
         ConsoleUtils.pausar("\n");
     }
 
-    private void ordenarCitas(String tipo, boolean asc) {
+   private void ordenarCitas(String tipo, boolean asc) {
 
-        Cita[] arr = Arrays.copyOf(
-                DatasetManager.getArray(),
-                DatasetManager.getArray().length,
-                Cita[].class);
+    Object[] data = DatasetManager.getArray();
 
-        // Tiempo real del algoritmo
-        long t0 = System.nanoTime();
-        OperationStats st = aplicarAlgoritmo(tipo, arr, asc);
-        long t1 = System.nanoTime();
-
-        st.setTime(t1 - t0);
-
-        mostrarEstadisticasOrden(arr, st);
+    if (!(data[0] instanceof Cita)) {
+        System.out.println(ANSI.RED_BOLD + "El dataset actual no es de citas." + ANSI.RESET);
+        return;
     }
+
+    Cita[] citas = Arrays.copyOf(data, data.length, Cita[].class);
+
+    OperationStats st;
+
+    switch (tipo) {
+        case "1" -> st = BubbleSorter.sort(citas, asc);
+        case "2" -> st = SelectionSorter.sort(citas, asc);
+        case "3" -> st = InsertionSorter.sort(citas, asc);
+        default -> {
+            System.out.println(ANSI.RED_BOLD + "Algoritmo inválido." + ANSI.RESET);
+            return;
+        }
+    }
+
+    DatasetManager.setArray(citas);
+    DatasetManager.setOrdenado(true);
+    DatasetManager.setOrdenadoPor("fechaHora");
+
+    System.out.println(ANSI.GREEN_BOLD +
+            "\nCitas ordenadas por fecha y hora (" +
+            (asc ? "ASC" : "DESC") + ")" +
+            ANSI.RESET);
+}
+
 
     private void ordenarPacientes(String tipo, boolean asc) {
 
@@ -302,43 +320,74 @@ public class MenuPrincipal {
     // ==========================================================
     private void ejecutarBusquedas() {
 
-        if (!DatasetManager.hayDataset()) {
-            System.out.println(ANSI.RED_BOLD + " No hay dataset cargado." + ANSI.RESET);
-            ConsoleUtils.pausar("");
-            return;
+    if (!DatasetManager.hayDataset()) {
+        System.out.println(ANSI.RED_BOLD + " No hay dataset cargado." + ANSI.RESET);
+        ConsoleUtils.pausar("");
+        return;
+    }
+
+    while (true) {
+
+        System.out.println(ANSI.CYAN_BOLD + "\n=== BÚSQUEDAS ===" + ANSI.RESET);
+
+        System.out.println("1. Búsqueda lineal por ID");
+        System.out.println("2. Lineal con centinela");
+        System.out.println("3. findAll (todas coincidencias)");
+        System.out.println("4. first");
+        System.out.println("5. last");
+
+        if (DatasetManager.isOrdenado()) {
+            System.out.println("6. Binaria (requiere orden previo)");
+            System.out.println("7. Binary bounds (duplicados)");
+        } else {
+            System.out.println(ANSI.YELLOW + "6. Binaria (NO disponible – dataset no ordenado)" + ANSI.RESET);
+            System.out.println(ANSI.YELLOW + "7. Binary bounds (NO disponible – dataset no ordenado)" + ANSI.RESET);
         }
 
-        while (true) {
-            System.out.println(ANSI.CYAN_BOLD + "\n=== BÚSQUEDAS ===" + ANSI.RESET);
+        System.out.println("8. Búsquedas en SLL");
+        System.out.println("9. Volver al menú principal");
 
-            System.out.println("1. Búsqueda lineal por ID");
-            System.out.println("2. Lineal con centinela");
-            System.out.println("3. findAll (todas coincidencias)");
-            System.out.println("4. first");
-            System.out.println("5. last");
-            System.out.println("6. Binaria");
-            System.out.println("7. Binary bounds (duplicados)");
-            System.out.println("8. Búsquedas en SLL");
-            System.out.println("9. Volver al menú principal");
+        String op = ConsoleUtils.leerLinea("Opción: ");
 
-            String op = ConsoleUtils.leerLinea("Opción: ");
+        switch (op) {
 
-            switch (op) {
-                case "1" -> busquedaLinealID();
-                case "2" -> busquedaCentinela();
-                case "3" -> busquedaFindAll();
-                case "4" -> busquedaFirst();
-                case "5" -> busquedaLast();
-                case "6" -> busquedaBinaria();
-                case "7" -> busquedaBounds();
-                case "8" -> submenuSLL();
-                case "9" -> {
-                    return;
+            case "1" -> busquedaLinealID();
+            case "2" -> busquedaCentinela();
+            case "3" -> busquedaFindAll();
+            case "4" -> busquedaFirst();
+            case "5" -> busquedaLast();
+
+            case "6" -> {
+                if (!DatasetManager.isOrdenado()) {
+                    System.out.println(ANSI.RED_BOLD +
+                        "⚠ La búsqueda binaria requiere que el dataset esté ordenado." +
+                        ANSI.RESET);
+                    ConsoleUtils.pausar("");
+                } else {
+                    busquedaBinaria();
                 }
-                default -> System.out.println(ANSI.RED_BOLD + "Opción inválida" + ANSI.RESET);
             }
+
+            case "7" -> {
+                if (!DatasetManager.isOrdenado()) {
+                    System.out.println(ANSI.RED_BOLD +
+                        "⚠ Binary bounds requiere un dataset ordenado." +
+                        ANSI.RESET);
+                    ConsoleUtils.pausar("");
+                } else {
+                    busquedaBounds();
+                }
+            }
+
+            case "8" -> submenuSLL();
+
+            case "9" -> { return; }
+
+            default -> System.out.println(ANSI.RED_BOLD + "Opción inválida" + ANSI.RESET);
         }
     }
+}
+
 
     private void busquedaLinealID() {
 
@@ -573,40 +622,68 @@ public class MenuPrincipal {
 
     private void busquedaBinaria() {
 
-        String id = ConsoleUtils.leerLinea("ID a buscar (requiere ordenado): ");
+    if (!DatasetManager.hayDataset()) {
+        System.out.println(ANSI.RED_BOLD + "No hay dataset cargado." + ANSI.RESET);
+        return;
+    }
 
-        Object[] arr = DatasetManager.getArray();
+    if (!DatasetManager.isOrdenado()
+            || !"fechaHora".equals(DatasetManager.getOrdenadoPor())) {
 
-        SearchStats st = new SearchStats();
+        System.out.println(ANSI.RED_BOLD +
+                "Debe ordenar las citas por FECHA/HORA antes de usar búsqueda binaria."
+                + ANSI.RESET);
+        return;
+    }
 
-        int pos = SearchEngine.binarySearchStats(arr, id, st);
+    String fechaStr = ConsoleUtils.leerLinea(
+            "Ingrese fecha y hora (yyyy-MM-ddTHH:mm): ");
 
-        if (pos >= 0) {
-            mostrarResultadoBusqueda(arr[pos], "Binaria", st.tiempoNs);
-            
-        System.out.println(ANSI.CYAN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
-        System.out.println(ANSI.CYAN + "║                ESTADÍSTICAS DE BÚSQUEDA (Binaria)      ║" + ANSI.RESET);
-        System.out.println(ANSI.CYAN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
-        System.out.println(ANSI.CYAN + "║ Métrica              ║ Valor                           ║" + ANSI.RESET);
-        System.out.println(ANSI.CYAN + "╠══════════════════════╬═════════════════════════════════╣" + ANSI.RESET);
-        System.out.printf(ANSI.CYAN + "║ Comparaciones        ║ %-28d    ║\n" + ANSI.RESET, st.comparaciones);
-        System.out.printf(ANSI.CYAN + "║ Resultados           ║ %-28d    ║\n" + ANSI.RESET, st.resultadosEncontrados);
-        System.out.printf(ANSI.CYAN + "║ Tiempo (ns)          ║ %-28d    ║\n" + ANSI.RESET, st.tiempoNs);
-        System.out.println(ANSI.CYAN + "╚══════════════════════╩═════════════════════════════════╝" + ANSI.RESET);
+    LocalDateTime buscada;
 
+    try {
+        buscada = LocalDateTime.parse(fechaStr);
+    } catch (Exception e) {
+        System.out.println(ANSI.RED_BOLD + "Formato inválido." + ANSI.RESET);
+        return;
+    }
+
+    SearchStats st = new SearchStats();
+    Object res = SearchEngine.binarySearchPorFecha(buscada, st);
+
+    mostrarResultadoBusqueda(res, st, "Binaria por fechaHora");
+}
+
+    // Nueva sobrecarga que muestra resultado + estadísticas y registra en historial
+    private void mostrarResultadoBusqueda(Object res, SearchStats st, String tipo) {
+
+        if (res == null) {
+            System.out.println(ANSI.RED + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.RED + "║                NO SE ENCONTRÓ EL REGISTRO              ║" + ANSI.RESET);
+            System.out.println(ANSI.RED + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
         } else {
-            mostrarResultadoBusqueda(null, "Binaria", st.tiempoNs);
+            System.out
+                    .println(ANSI.GREEN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
+            System.out.println(ANSI.GREEN + "║                    REGISTRO ENCONTRADO                 ║" + ANSI.RESET);
+            System.out.println(ANSI.GREEN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
+            System.out.printf(ANSI.GREEN + "║ %-54s ║\n" + ANSI.RESET, res.toString());
+            System.out.println(ANSI.GREEN + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
         }
 
+        // Mostrar estadísticas
+        mostrarStatsBusqueda(tipo, st);
+
+        // Registrar en historial (detalle genérico: tipo)
         HistoryManager.log(
                 "SEARCH",
-                "Binaria por ID",
-                "id=" + id.toUpperCase(),
+                tipo,
+                tipo,
                 st.resultadosEncontrados,
                 st.tiempoNs);
 
         ConsoleUtils.pausar("");
     }
+
 
     private void busquedaBounds() {
 
