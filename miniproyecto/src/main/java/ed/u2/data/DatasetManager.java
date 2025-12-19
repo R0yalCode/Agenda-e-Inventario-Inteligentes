@@ -4,6 +4,7 @@ import ed.u2.app.HistoryManager;
 import ed.u2.io.CsvLoader;
 import ed.u2.model.*;
 import ed.u2.sll.SinglyLinkedList;
+import ed.u2.stats.SortingStatsManager;
 
 import java.io.File;
 import java.util.*;
@@ -202,6 +203,9 @@ static {
             tipoActual = DatasetType.NONE;
             return;
         }
+
+        // Invalidate sorting stats cache because dataset is about to change
+        SortingStatsManager.clearCache();
 
         if (datos.containsKey("citas")) {
 

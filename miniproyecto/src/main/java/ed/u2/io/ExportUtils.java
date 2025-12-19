@@ -28,7 +28,7 @@ public class ExportUtils {
 
     private static void exportSortingStats() throws IOException {
 
-        Map<String, ?> map = SortingStatsManager.getLastStats();
+        Map<String, ?> map = SortingStatsManager.exportarEstadisticas();
 
         Path out = EXPORT_DIR.resolve("sorting_stats.csv");
 
@@ -46,9 +46,6 @@ public class ExportUtils {
             bw.write("Algoritmo,Tiempo(ns),Comparaciones,Intercambios");
             bw.newLine();
 
-            String bestAlgorithm = null;
-            long bestTime = Long.MAX_VALUE;
-
             for (var e : map.entrySet()) {
                 var st = (ed.u2.stats.OperationStats) e.getValue();
 
@@ -60,18 +57,21 @@ public class ExportUtils {
                         st.getSwaps()
                 ));
                 bw.newLine();
-
-                // Determine the best algorithm based on the shortest time
-                if (st.getTime() < bestTime) {
-                    bestTime = st.getTime();
-                    bestAlgorithm = e.getKey();
-                }
             }
 
-            // Save the best algorithm
-            if (bestAlgorithm != null) {
+            // Calculate the best algorithm using the same logic as in mostrarDetalle
+            // Use SortingStatsManager to get the best algorithm
+            var bestEntry = SortingStatsManager.obtenerMejorAlgoritmo((Map<String, ed.u2.stats.OperationStats>) map);
+
+            if (bestEntry != null) {
+                String bestAlgorithm = bestEntry.getKey();
+                long bestTime = bestEntry.getValue().getTime();
+
                 bw.newLine();
                 bw.write(String.format("Mejor Algoritmo: %s con Tiempo(ns): %d", bestAlgorithm, bestTime));
+            } else {
+                bw.newLine();
+                bw.write("Mejor Algoritmo: No disponible");
             }
         }
     }

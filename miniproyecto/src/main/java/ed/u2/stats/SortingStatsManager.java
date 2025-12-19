@@ -1,7 +1,6 @@
 package ed.u2.stats;
 
 import ed.u2.data.DatasetManager;
-import ed.u2.sorting.*;
 import ed.u2.util.ANSI;
 
 import java.util.Arrays;
@@ -11,12 +10,10 @@ import java.util.Map;
 public class SortingStatsManager {
 
     private static final int ALTURA_MAX = 15;
-    private static final int ANCHO_BARRA = 12;
-    private static final String BLOQUE = "██";
+    private static final int ANCHO_BARRA = 14;
+    // Cache for computed statistics so mostrar() and export use identical data
+    private static Map<String, OperationStats> cachedStats = null;
 
-    // =========================================================
-    // ENTRADA PRINCIPAL
-    // =========================================================
     public static void mostrar() {
 
         if (!DatasetManager.hayDataset()) {
@@ -24,57 +21,62 @@ public class SortingStatsManager {
             return;
         }
 
-        System.out.println(
-                ANSI.CYAN_BOLD +
-                        "\n=== ESTADÍSTICAS VISUALES DE ORDENACIÓN ===\n" +
-                        ANSI.RESET);
+        // Use cached statistics (computed once per dataset load)
+        Map<String, OperationStats> stats = obtenerEstadisticasCacheadas();
 
-        Object[] base = DatasetManager.getArray();
+        System.out.println(ANSI.CYAN_BOLD +
+                "\n=== ESTADÍSTICAS VISUALES DE ORDENACIÓN ===\n" +
+                ANSI.RESET);
 
-        Map<String, OperationStats> stats = new LinkedHashMap<>();
-
-        Comparable[] burbuja = Arrays.copyOf(base, base.length, Comparable[].class);
-        Comparable[] seleccion = Arrays.copyOf(base, base.length, Comparable[].class);
-        Comparable[] insercion = Arrays.copyOf(base, base.length, Comparable[].class);
-
-        stats.put("Burbuja", BubbleSorter.sort(burbuja, true));
-        stats.put("Selección", SelectionSorter.sort(seleccion, true));
-        stats.put("Inserción", InsertionSorter.sort(insercion, true));
-
-        lastStats = stats; 
         dibujarHistograma(stats);
+    }
 
-    
+    // =========================================================
+    // EJECUCIÓN AISLADA POR ALGORITMO
+    // =========================================================
+    @SuppressWarnings("unchecked")
+    private static OperationStats ejecutar(
+            SortFunction sorter,
+            Object[] snapshotBase) {
+
+        //   Copia FRESCA para este algoritmo
+        Comparable[] data = Arrays.copyOf(
+                snapshotBase,
+                snapshotBase.length,
+                Comparable[].class
+        );
+
+        return sorter.sort(data, true);
     }
 
     // =========================================================
     // HISTOGRAMA VERTICAL
     // =========================================================
-    private static void dibujarHistograma(Map<String, OperationStats> stats) {
+    private static void dibujarHistograma(Map<String, OperationStats> map) {
 
-        long maxTiempo = stats.values().stream()
+        long maxTiempo = map.values().stream()
                 .mapToLong(OperationStats::getTime)
                 .max()
                 .orElse(1);
 
         Map<String, Integer> alturas = new LinkedHashMap<>();
-        for (var e : stats.entrySet()) {
+        for (var e : map.entrySet()) {
             int h = (int) ((double) e.getValue().getTime() / maxTiempo * ALTURA_MAX);
             alturas.put(e.getKey(), Math.max(1, h));
         }
 
         String[] colores = {
-                ANSI.YELLOW_BOLD,
-                ANSI.BLUE_BOLD,
-                ANSI.RED_BOLD
+                ANSI.YELLOW_BOLD, // Burbuja
+                ANSI.BLUE_BOLD,   // Selección
+                ANSI.RED_BOLD     // Inserción
         };
 
-        // ----- BARRAS -----
+        // ───── BARRAS ─────
         for (int nivel = ALTURA_MAX; nivel >= 1; nivel--) {
             int i = 0;
-            for (String key : stats.keySet()) {
+            for (String key : alturas.keySet()) {
                 if (alturas.get(key) >= nivel) {
-                    System.out.print(colores[i] + BLOQUE.repeat(ANCHO_BARRA / 2) + ANSI.RESET);
+                    System.out.print(colores[i] + "█".repeat(ANCHO_BARRA) + ANSI.RESET);
                 } else {
                     System.out.print(" ".repeat(ANCHO_BARRA));
                 }
@@ -84,32 +86,33 @@ public class SortingStatsManager {
             System.out.println();
         }
 
-        // ----- BASE -----
-        System.out.println("─".repeat((ANCHO_BARRA + 3) * stats.size()));
+        // ───── BASE ─────
+        System.out.println("─".repeat((ANCHO_BARRA + 3) * alturas.size()));
 
-        // ----- NOMBRES -----
+        // ───── NOMBRES ─────
         int i = 0;
-        for (String nombre : stats.keySet()) {
-            System.out.print(
-                    colores[i++] +
-                            centrar(nombre, ANCHO_BARRA) +
-                            ANSI.RESET + "   ");
+        for (String nombre : map.keySet()) {
+            System.out.print(colores[i++] +
+                    centrar(nombre, ANCHO_BARRA) +
+                    ANSI.RESET + "   ");
         }
-        System.out.println("\n");
 
-        mostrarDetalle(stats, colores);
+        System.out.println("\n");
+        mostrarDetalle(map, colores);
     }
 
     // =========================================================
-    // DETALLES + MEJOR
+    // DETALLE + MEJOR ALGORITMO
     // =========================================================
-    private static void mostrarDetalle(Map<String, OperationStats> stats, String[] colores) {
+    private static void mostrarDetalle(
+            Map<String, OperationStats> map,
+            String[] colores) {
 
         String mejor = "";
         long mejorTiempo = Long.MAX_VALUE;
 
         int i = 0;
-        for (var e : stats.entrySet()) {
+        for (var e : map.entrySet()) {
 
             OperationStats st = e.getValue();
 
@@ -142,21 +145,62 @@ public class SortingStatsManager {
 
     // =========================================================
     private static String centrar(String txt, int ancho) {
-        if (txt.length() >= ancho)
-            return txt.substring(0, ancho);
+        if (txt.length() >= ancho) return txt.substring(0, ancho);
         int left = (ancho - txt.length()) / 2;
         int right = ancho - txt.length() - left;
         return " ".repeat(left) + txt + " ".repeat(right);
     }
 
+    // =========================================================
+    // INTERFAZ FUNCIONAL (LIMPIA)
+    // =========================================================
+    @FunctionalInterface
+    private interface SortFunction {
+        OperationStats sort(Comparable[] arr, boolean asc);
+    }
 
-
-    // ================= EXPORT SUPPORT =================
-
-private static Map<String, OperationStats> lastStats;
-
-public static Map<String, OperationStats> getLastStats() {
-    return lastStats;
+// ================= EXPORT SUPPORT =================
+public static Map<String, OperationStats> exportarEstadisticas() {
+    return obtenerEstadisticasCacheadas();
 }
 
+    // =========================================================
+    // MÉTODO PARA OBTENER EL MEJOR ALGORITMO
+    // =========================================================
+    public static Map.Entry<String, OperationStats> obtenerMejorAlgoritmo(Map<String, OperationStats> map) {
+        String mejor = "";
+        long mejorTiempo = Long.MAX_VALUE;
+        Map.Entry<String, OperationStats> mejorEntrada = null;
+
+        for (var e : map.entrySet()) {
+            OperationStats st = e.getValue();
+            if (st.getTime() < mejorTiempo) {
+                mejorTiempo = st.getTime();
+                mejor = e.getKey();
+                mejorEntrada = e;
+            }
+        }
+        return mejorEntrada;
+    }
+
+    // =========================================================
+    // CACHED STATS HELPERS
+    // =========================================================
+    public static Map<String, OperationStats> obtenerEstadisticasCacheadas() {
+        if (!DatasetManager.hayDataset()) {
+            throw new IllegalStateException("No hay dataset cargado.");
+        }
+
+        if (cachedStats == null) {
+            Object[] base = DatasetManager.getArray();
+            cachedStats = SortingBenchmark.ejecutar(base);
+        }
+        return cachedStats;
+    }
+
+    public static void clearCache() {
+        cachedStats = null;
+    }
 }
+
+

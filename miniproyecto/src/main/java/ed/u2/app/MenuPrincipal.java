@@ -765,52 +765,50 @@ public class MenuPrincipal {
 
         System.out.println("\nAtributo a buscar:");
 
-        Map<Integer, String> opciones = new LinkedHashMap<>();
-
         switch (t) {
+
             case CITAS -> {
-                opciones.put(1, "id");
-                opciones.put(2, "apellido");
-                opciones.put(3, "fecha");
+                System.out.println("1. id");
+                System.out.println("2. apellido");
+                System.out.println("3. fecha");
+                String op = ConsoleUtils.leerLinea("Opción: ");
+                return switch (op) {
+                    case "1" -> "id";
+                    case "2" -> "apellido";
+                    case "3" -> "fecha";
+                    default -> "id";
+                };
             }
+
             case PACIENTES -> {
-                opciones.put(1, "id");
-                opciones.put(2, "apellido");
-                opciones.put(3, "prioridad");
+                System.out.println("1. id");
+                System.out.println("2. apellido");
+                System.out.println("3. prioridad");
+                String op = ConsoleUtils.leerLinea("Opción: ");
+                return switch (op) {
+                    case "1" -> "id";
+                    case "2" -> "apellido";
+                    case "3" -> "prioridad";
+                    default -> "id";
+                };
             }
+
             case INVENTARIO -> {
-                opciones.put(1, "id");
-                opciones.put(2, "insumo");
-                opciones.put(3, "stock");
+                System.out.println("1. id");
+                System.out.println("2. insumo");
+                System.out.println("3. stock");
+                String op = ConsoleUtils.leerLinea("Opción: ");
+                return switch (op) {
+                    case "1" -> "id";
+                    case "2" -> "insumo";
+                    case "3" -> "stock";
+                    default -> "id";
+                };
             }
+
             default -> {
-                System.out.println(ANSI.RED_BOLD + "Dataset desconocido. Se usará 'id' por defecto." + ANSI.RESET);
                 return "id";
             }
-        }
-
-        // Mostrar opciones
-        for (Map.Entry<Integer, String> e : opciones.entrySet()) {
-            System.out.println(e.getKey() + ". " + e.getValue());
-        }
-
-        // Leer y validar en bucle
-        while (true) {
-            String entrada = ConsoleUtils.leerLinea("Opción: ");
-            int op;
-            try {
-                op = Integer.parseInt(entrada);
-            } catch (NumberFormatException ex) {
-                System.out.println(ANSI.RED_BOLD + "Entrada inválida. Ingrese un número correspondiente a las opciones mostradas." + ANSI.RESET);
-                continue;
-            }
-
-            if (!opciones.containsKey(op)) {
-                System.out.println(ANSI.RED_BOLD + "Opción inválida. Seleccione una opción que se muestre en el menú." + ANSI.RESET);
-                continue;
-            }
-
-            return opciones.get(op);
         }
     }
 }
