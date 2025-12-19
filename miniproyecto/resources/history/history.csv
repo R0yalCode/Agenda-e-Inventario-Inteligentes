@@ -399,3 +399,8 @@
 "2025-12-19 07:30:24","SEARCH","Centinela por ID","id=ITEM-0016",1,57000,""
 "2025-12-19 07:30:46","SEARCH","findAll por insumo","insumo=",0,397600,""
 "2025-12-19 07:32:22","LOAD","Dataset oficial","archivo=citas_100.csv",100,0,""
+"2025-12-19 07:42:11","SEARCH","Binaria por fechaHora","Binaria por fechaHora",1,199000,""
+"2025-12-19 07:45:26","LOAD","Dataset oficial","archivo=citas_100.csv",100,0,""
+"2025-12-19 07:45:58","SEARCH","Binaria por fechaHora","Binaria por fechaHora",1,31600,""
+"2025-12-19 07:48:17","LOAD","Dataset oficial","archivo=citas_100.csv",100,0,""
+"2025-12-19 07:48:33","SEARCH","Binaria por fechaHora","Binaria por fechaHora",1,30800,""

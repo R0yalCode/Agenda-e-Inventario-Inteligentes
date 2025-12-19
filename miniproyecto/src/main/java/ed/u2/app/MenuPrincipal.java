@@ -654,10 +654,73 @@ public class MenuPrincipal {
     mostrarResultadoBusqueda(res, st, "Binaria por fechaHora");
 }
 
-    // Nueva sobrecarga que muestra resultado + estadísticas y registra en historial
-    private void mostrarResultadoBusqueda(Object res, SearchStats st, String tipo) {
+        private void mostrarResultadoBusqueda(Object res, SearchStats st, String tipo) {
 
-        if (res == null) {
+        Object toShow = res;
+
+        if (res instanceof ed.u2.search.SearchResult) {
+            Object sr = res;
+            Class<?> cls = sr.getClass();
+
+            // Intentar getters comunes
+            String[] getters = {"getValue", "getItem", "get", "getResult", "getData", "getNode", "getObject", "getElement", "getElemento"};
+            for (String name : getters) {
+                try {
+                    java.lang.reflect.Method m = cls.getMethod(name);
+                    Object v = m.invoke(sr);
+                    if (v != null) {
+                        toShow = v;
+                        break;
+                    }
+                } catch (NoSuchMethodException ignored) {
+                } catch (Exception ignored) {
+                }
+            }
+
+            // Si no se encontró, intentar campos comunes
+            if (toShow == sr) {
+                String[] fields = {"value", "item", "result", "data", "node", "object", "element", "elemento"};
+                for (String fname : fields) {
+                    try {
+                        java.lang.reflect.Field f = cls.getDeclaredField(fname);
+                        f.setAccessible(true);
+                        Object v = f.get(sr);
+                        if (v != null) {
+                            toShow = v;
+                            break;
+                        }
+                    } catch (NoSuchFieldException ignored) {
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+
+            // Fallback: intentar cualquier método público sin parámetros que devuelva un objeto útil
+            if (toShow == sr) {
+                for (java.lang.reflect.Method m : cls.getMethods()) {
+                    if (m.getParameterCount() == 0) {
+                        String n = m.getName();
+                        if (n.equals("getClass") || n.equals("toString") || n.equals("hashCode") || n.equals("equals"))
+                            continue;
+                        try {
+                            Object v = m.invoke(sr);
+                            if (v != null && v != sr) {
+                                toShow = v;
+                                break;
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    }
+                }
+            }
+
+            // Si todo falla, usar la representación por defecto del SearchResult
+            if (toShow == sr) {
+                toShow = sr.toString();
+            }
+        }
+
+        if (toShow == null) {
             System.out.println(ANSI.RED + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
             System.out.println(ANSI.RED + "║                NO SE ENCONTRÓ EL REGISTRO              ║" + ANSI.RESET);
             System.out.println(ANSI.RED + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
@@ -666,7 +729,7 @@ public class MenuPrincipal {
                     .println(ANSI.GREEN + "\n╔════════════════════════════════════════════════════════╗" + ANSI.RESET);
             System.out.println(ANSI.GREEN + "║                    REGISTRO ENCONTRADO                 ║" + ANSI.RESET);
             System.out.println(ANSI.GREEN + "╠════════════════════════════════════════════════════════╣" + ANSI.RESET);
-            System.out.printf(ANSI.GREEN + "║ %-54s ║\n" + ANSI.RESET, res.toString());
+            System.out.printf(ANSI.GREEN + "║ %-54s ║\n" + ANSI.RESET, toShow.toString());
             System.out.println(ANSI.GREEN + "╚════════════════════════════════════════════════════════╝" + ANSI.RESET);
         }
 
