@@ -182,6 +182,55 @@ Funciona en:
 * macOS
 
 ---
+## 7. Decisiones de diseño
+- **Arreglos** se utilizan en agenda e inventario porque permiten:
+  - Acceso directo
+  - Ordenación eficiente
+  - Uso de búsqueda binaria (O(log n)) tras ordenar
+
+- **Lista simplemente enlazada (SLL)** se utiliza para pacientes porque:
+  - Facilita inserciones dinámicas
+  - No requiere reordenar la estructura
+  - La búsqueda secuencial es adecuada para este contexto
+
+- **Elección de algoritmos de ordenación**:
+  - **Inserción**: preferido para datos casi ordenados
+  - **Selección**: mantiene comparaciones constantes en datos inversos
+  - **Burbuja**: usado como referencia comparativa
+
+- **Búsqueda binaria** se ejecuta únicamente cuando el arreglo está previamente ordenado, validando esta precondición antes de su uso.
+
+---
+
+## 8. Casos de borde considerados
+
+### Ordenación (arreglos)
+- Arreglo vacío (n = 0)
+- Arreglo con un solo elemento
+- Dataset ya ordenado
+- Dataset inverso
+- Claves duplicadas en el criterio de ordenación
+
+### Búsqueda binaria
+- Búsqueda en arreglo no ordenado (precondición)
+- Clave inexistente
+- Claves duplicadas (uso de bounds)
+- Clave ubicada en el primer o último elemento
+
+### Búsqueda secuencial (SLL)
+- Lista vacía
+- Coincidencia en el primer nodo
+- Coincidencia en el último nodo
+- Múltiples coincidencias (`findAll`)
+- Ninguna coincidencia
+
+### Medición de rendimiento
+- Descarte de las primeras corridas para evitar efectos del calentamiento de la JVM
+- Validación de contadores en escenarios extremos
+
+
+---
+
 
 ##  7. Cómo clonar y ejecutar el proyecto
 
