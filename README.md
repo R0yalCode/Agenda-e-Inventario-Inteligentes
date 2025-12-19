@@ -202,13 +202,16 @@ java -cp bin ed.u2.app.MenuPrincipal
 
 
 ## 8. Capturas de Ejecución 
-
+- Datashet: citas_100
 <img width="427" height="719" alt="image" src="https://github.com/user-attachments/assets/2e4c670d-29f4-4491-b7df-a585e761a0bf" />
 
+- Datashet: citas_100_casi_ordenadas
 <img width="432" height="727" alt="image" src="https://github.com/user-attachments/assets/74fc9d7a-01d4-479b-a0c1-33f51b832892" />
 
+- Datashet: inventario_500_inverso
 <img width="443" height="727" alt="image" src="https://github.com/user-attachments/assets/43b3c5b1-3aa8-42c1-82f1-bb6ddeea4c5d" />
 
+- Datashet: pacientes_500
 <img width="425" height="722" alt="image" src="https://github.com/user-attachments/assets/e1a67b84-7a89-47e9-b71b-7b53c73adabe" />
 
 ---
