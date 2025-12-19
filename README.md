@@ -3,7 +3,7 @@
 ## Unidad 2 – Estructura de Datos
 ---
 Link del taller:
-# [Taller – Algoritmos de Búsqueda y Ordenación]()
+# [Taller – Algoritmos de Búsqueda y Ordenación](https://github.com/R0yalCode/Agenda-e-Inventario-Inteligentes/blob/feature/MiniProyectoGrupoK.pdf)
 ---
 
 ## 1. Introducción
